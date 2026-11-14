@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Postgres Lab — Guided learning path</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="prototype.js" defer></script>
+</head>
+<body class="theme-guided">
+  <div class="app-shell guided-shell">
+    <aside class="course-rail" aria-label="Course navigation">
+      <a class="brand" href="#" aria-label="Postgres Lab home"><span class="brand-mark">p</span><span>postgres<span class="brand-light">lab</span></span></a>
+      <div class="path-heading"><span class="path-kicker">YOUR LEARNING PATH</span><strong>Postgres, step by step</strong><span class="path-count" data-progress>8 <small>of 11 complete</small></span><div class="progress-track"><i></i></div></div>
+      <nav class="chapter-list">
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>00</small> Start here</span></a><a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>01</small> From Room to Postgres</span></a><a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>02</small> Tables, rows &amp; types</span></a><a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>03</small> Find data</span></a><a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>04</small> Change data</span></a><a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>05</small> Join tables</span></a><a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>06</small> Count &amp; group</span></a><a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>07</small> Indexes &amp; EXPLAIN</span></a><a class="chapter current" href="#" aria-current="page"><span class="chapter-state">●</span><span><small>08</small> Transactions</span></a><a class="chapter upcoming" href="#"><span class="chapter-state">09</span><span>FastAPI + Postgres</span></a><a class="chapter upcoming" href="#"><span class="chapter-state">10</span><span>Event-driven thinking</span></a>
+      </nav>
+      <div class="path-encouragement"><span>✳</span><p>Eight chapters down.<br><strong>You’re finding your flow.</strong></p></div>
+      <div class="rail-foot"><span class="avatar">S</span><span><strong>Sam’s learning space</strong><small>Progress saved on device</small></span></div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar"><div class="crumb"><span>Learning path</span><span class="crumb-sep">›</span><strong>Step 9 of 11</strong></div><div class="top-actions"><span class="streak"><span class="streak-dot"></span> 4 day streak</span><button class="button button-quiet" data-dialog="signin">Save my progress</button><button class="button button-dark" data-dialog="provider">AI coach settings</button></div></header>
+      <div class="guided-content">
+        <div class="journey-progress"><div class="journey-track"><span class="journey-past"></span><span class="journey-current"></span></div><div class="journey-labels"><span>Build your foundation</span><strong>Make it reliable</strong><span>Go event-driven</span></div></div>
+        <div class="guided-grid">
+          <article class="guided-lesson">
+            <div class="step-tag"><span>YOUR NEXT STEP</span><span>~ 12 MIN</span></div>
+            <h1>Make every order count.</h1>
+            <p class="guided-dek">Asha and Ravi order chai at the same moment. Help ChaiPoint keep stock accurate.</p>
+            <div class="guided-insight"><span class="insight-number">01</span><p><strong>One statement. One current value.</strong><br>Let the database subtract from the latest stock value. A guard keeps it from going below zero.</p></div>
+            <section class="guided-exercise"><div class="guided-exercise-head"><span class="exercise-step"><b>2</b> of 3 · TRY IT</span><span class="db-status"><i></i> Ready to practice</span></div><h2>Can you protect the last chai?</h2><p>Reduce Masala chai by 2. Only update it when at least 2 are still in stock.</p>
+              <div class="editor editor-warm" aria-label="SQL example"><div class="editor-bar"><span>your-query.sql</span><span class="language">SQL</span></div><pre><span class="line-no">1</span> <span class="sql-key">UPDATE</span> products
+<span class="line-no">2</span> <span class="sql-key">SET</span> stock = stock - <span class="sql-num">2</span>
+<span class="line-no">3</span> <span class="sql-key">WHERE</span> id = <span class="sql-num">1</span> <span class="sql-key">AND</span> stock &gt;= <span class="sql-num">2</span>
+<span class="line-no">4</span> <span class="sql-key">RETURNING</span> stock;</pre></div>
+              <div class="guided-result" aria-live="polite"><span class="result-check">✓</span><span><strong data-run-label>Ready when you are</strong><small data-run-feedback>Masala chai starts with <b data-stock>200</b> in stock.</small></span><button class="button button-primary" data-action="run">Run it <span>→</span></button></div>
+            </section>
+            <div class="guided-bottom"><span>Need a hand? Your coach has three gentle steps.</span><button class="button button-next" data-action="complete">I’ve got it <span>→</span></button></div>
+          </article>
+          <aside class="guided-coach" aria-label="Your learning coach"><div class="guided-coach-head"><span class="coach-orb">✳</span><span><strong>Need a little help?</strong><small>Choose what feels right</small></span></div><div class="guided-step-list"><button data-help-level="nudge"><span class="guided-step-number">1</span><span><strong>A nudge</strong><small>Point me in a direction</small></span><b>›</b></button><button data-help-level="hint"><span class="guided-step-number">2</span><span><strong>A helpful hint</strong><small>Give me the pattern</small></span><b>›</b></button><button data-help-level="solution"><span class="guided-step-number">3</span><span><strong>Show me how</strong><small>Full solution + why</small></span><b>›</b></button></div><div class="guided-response" data-help-response aria-live="polite"><span>✳</span><p>There’s no penalty for asking. We’ll keep your place while you learn.</p></div><button class="button guided-ai" data-dialog="provider">Ask AI coach <span>↗</span></button><div class="progress-reassurance"><span>✓</span> Your progress stays saved while you explore.</div></aside>
+        </div>
+      </div>
+    </main>
+  </div>
+  <dialog id="signin-dialog" class="app-dialog" aria-labelledby="signin-title"><form method="dialog"><button class="dialog-close" aria-label="Close">×</button></form><span class="dialog-mark">p</span><p class="dialog-kicker">SAVE YOUR LEARNING</p><h2 id="signin-title">Your progress, wherever you are.</h2><p class="dialog-copy">Sign in to sync completed lessons and notes across devices.</p><button class="button provider-login" data-action="demo-signin">Continue with ChatGPT <span>↗</span></button><span class="availability">Available in participating apps only.</span><div class="or-line"><span>or use email</span></div><label class="field-label" for="email-guided">Email address</label><input id="email-guided" type="email" placeholder="you@example.com"><button class="button button-primary email-button" data-action="demo-signin">Continue with email</button><p class="dialog-note" data-account-note>Course progress and AI access use separate accounts.</p></dialog>
+  <dialog id="provider-dialog" class="app-dialog provider-dialog" aria-labelledby="provider-title"><form method="dialog"><button class="dialog-close" aria-label="Close">×</button></form><span class="dialog-kicker">PERSONALIZE YOUR COACH</span><h2 id="provider-title">Choose an AI provider.</h2><p class="dialog-copy">Your course account is separate. Review access and cost before connecting.</p><button class="provider-choice" data-action="provider-preview"><span class="provider-monogram openai-mark">◎</span><span><strong>OpenAI</strong><small>Eligible sign-in or API access</small></span><b>Connect →</b></button><button class="provider-choice" data-action="provider-preview"><span class="provider-monogram opencode-mark">⌘</span><span><strong>OpenCode</strong><small>Use a model connected in OpenCode</small></span><b>Connect →</b></button><button class="provider-choice" data-action="provider-preview"><span class="provider-monogram claude-mark">✳</span><span><strong>Anthropic</strong><small>Claude model access through API</small></span><b>Connect →</b></button><label class="spend-label" for="spend-guided">Monthly AI spend limit <strong data-spend-value>$10</strong></label><input id="spend-guided" class="spend-slider" type="range" min="1" max="50" value="10" aria-label="Monthly AI spend limit"><p class="billing-note" data-provider-note>OpenCode uses an existing provider connection; usage follows provider terms. API usage may be billed separately. ChatGPT usage sharing needs supported authorization; Claude subscriptions don’t include Console API use. This demo never asks for a provider secret.</p><div class="permission-row"><span>Stay in control</span><span>Review permissions · Set a limit · Disconnect</span></div></dialog>
+</body>
+</html>

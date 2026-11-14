@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Postgres Lab — Developer studio</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="prototype.js" defer></script>
+</head>
+<body class="theme-studio">
+  <div class="app-shell studio-shell">
+    <aside class="course-rail" aria-label="Course navigation">
+      <a class="brand" href="#" aria-label="Postgres Lab home"><span class="brand-mark">p</span><span>postgres<span class="brand-light">lab</span></span></a>
+      <div class="rail-label">COURSE MAP <span class="count-pill">11</span></div>
+      <nav class="chapter-list">
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>00</small> Start here</span></a>
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>01</small> Room to PostgreSQL</span></a>
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>02</small> Tables, rows &amp; types</span></a>
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>03</small> Finding data</span></a>
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>04</small> Changing data</span></a>
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>05</small> Joins</span></a>
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>06</small> Aggregates</span></a>
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>07</small> Indexes &amp; EXPLAIN</span></a>
+        <a class="chapter current" href="#" aria-current="page"><span class="chapter-state">●</span><span><small>08</small> Transactions &amp; concurrency</span></a>
+        <a class="chapter upcoming" href="#"><span class="chapter-state">09</span><span>FastAPI + Postgres</span></a>
+        <a class="chapter upcoming" href="#"><span class="chapter-state">10</span><span>Event-driven thinking</span></a>
+      </nav>
+      <div class="rail-progress"><span>COURSE PROGRESS</span><strong data-progress>8 <small>/ 11 lessons</small></strong><div class="progress-track"><i></i></div><small>Chapter 08 of 11</small></div>
+      <div class="rail-foot"><span class="avatar">S</span><span><strong>Sam’s workspace</strong><small>Local progress</small></span><span class="more">···</span></div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar"><div class="crumb"><span class="workspace-label"><i></i> Playground</span><span class="crumb-sep">/</span><strong>08 · Concurrency</strong></div><div class="top-actions"><span class="streak">4 day streak</span><button class="button button-quiet" data-dialog="signin">Sign in</button><button class="button button-dark" data-dialog="provider">AI settings</button></div></header>
+      <div class="studio-content">
+        <div class="studio-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span> TRANSACTIONS <span class="eyebrow-dot">/</span> EXERCISE 2 OF 4</div><h1>Keep both orders.</h1><p>Write the update once. Let Postgres serialize the row changes.</p></div><div class="heading-progress"><span>LESSON</span><strong data-progress>8<span>/11</span></strong></div></div>
+        <div class="studio-grid">
+          <div class="studio-main">
+            <section class="studio-brief"><div class="brief-icon">↯</div><div><span class="section-kicker">THE CHALLENGE</span><p>ChaiPoint has 200 Masala chai. Asha and Ravi each order 2. Add the stock guard so neither order can oversell.</p></div><button class="tiny-action" aria-label="Collapse challenge">⌃</button></section>
+            <section class="studio-editor">
+              <div class="editor-bar"><div class="file-tab"><span class="file-dot"></span> stock_update.sql <span class="dirty-dot">●</span></div><span class="db-status"><i></i> chaipoint / products</span><button class="editor-menu" aria-label="Editor menu">···</button></div>
+              <div class="code-area" aria-label="SQL example"><div class="code-line"><span>1</span><code><b>UPDATE</b> products</code></div><div class="code-line"><span>2</span><code><b>SET</b> stock = stock - <em>2</em></code></div><div class="code-line"><span>3</span><code><b>WHERE</b> id = <em>1</em> <b>AND</b> stock &gt;= <em>2</em></code></div><div class="code-line"><span>4</span><code><b>RETURNING</b> stock;</code></div></div>
+              <div class="studio-runbar"><span><i class="run-key"></i> PostgreSQL 16 <span class="muted-divider">·</span> Read Committed</span><button class="button button-run" data-action="run"><span>▶</span> Run <kbd>⌘ ↵</kbd></button></div>
+            </section>
+            <section class="output-panel" aria-live="polite"><div class="output-head"><div><span class="output-indicator"></span><strong>Results</strong><span class="output-tab">Data output</span></div><span class="run-label" data-run-label>Ready · 200 rows in stock</span></div><div class="output-table"><div class="output-th"><span>#</span><span>stock</span></div><div class="output-tr"><span>1</span><strong data-stock>200</strong></div></div><div class="output-status"><span data-run-feedback>Waiting for your query.</span><span>0.00s <span class="muted-divider">·</span> 1 row</span></div></section>
+            <div class="studio-next"><span><span class="next-dot"></span> Up next <strong>Lock a row with SELECT FOR UPDATE</strong></span><button class="button button-next" data-action="complete">Complete exercise <span>→</span></button></div>
+          </div>
+          <aside class="studio-coach" aria-label="AI learning coach">
+            <div class="studio-coach-head"><span class="coach-orb">✳</span><span><strong>Coach</strong><small>Context-aware guidance</small></span><button class="tiny-action" aria-label="Coach menu">···</button></div>
+            <div class="coach-context"><span class="context-line"></span><small>ON THIS EXERCISE</small><p>One request can’t see the other’s uncommitted change. How do we avoid writing an old value?</p></div>
+            <div class="studio-help-list"><button data-help-level="nudge"><span class="help-index">01</span><span><strong>Nudge</strong><small>Just a small push</small></span><b>→</b></button><button data-help-level="hint"><span class="help-index">02</span><span><strong>Hint</strong><small>Reveal the pattern</small></span><b>→</b></button><button data-help-level="solution"><span class="help-index">03</span><span><strong>Full walkthrough</strong><small>Code + explanation</small></span><b>→</b></button></div>
+            <div class="studio-response" data-help-response aria-live="polite"><span>✳</span><p>Your coach will meet you where you are. Try a nudge, or ask for the full walkthrough.</p></div>
+            <button class="button coach-cta" data-dialog="provider"><span>✳</span> Ask AI coach <span>↗</span></button>
+            <div class="coach-privacy">AI help is optional. Your SQL stays in this demo.</div>
+          </aside>
+        </div>
+      </div>
+    </main>
+  </div>
+  <dialog id="signin-dialog" class="app-dialog" aria-labelledby="signin-title">
+    <form method="dialog"><button class="dialog-close" aria-label="Close">×</button></form><span class="dialog-mark">p</span><p class="dialog-kicker">LEARNER ACCOUNT</p><h2 id="signin-title">Sync your learning.</h2><p class="dialog-copy">Sign in to carry your course progress and notes between devices.</p><button class="button provider-login" data-action="demo-signin">Continue with ChatGPT <span>↗</span></button><span class="availability">Available in participating apps only.</span><div class="or-line"><span>or use email</span></div><label class="field-label" for="email-studio">Email address</label><input id="email-studio" type="email" placeholder="you@example.com"><button class="button button-primary email-button" data-action="demo-signin">Continue with email</button><p class="dialog-note" data-account-note>Course identity and model access are separate.</p>
+  </dialog>
+  <dialog id="provider-dialog" class="app-dialog provider-dialog" aria-labelledby="provider-title">
+    <form method="dialog"><button class="dialog-close" aria-label="Close">×</button></form><span class="dialog-kicker">MODEL PROVIDER</span><h2 id="provider-title">Choose your AI.</h2><p class="dialog-copy">The coach uses a provider you authorize separately from course sign-in.</p><button class="provider-choice" data-action="provider-preview"><span class="provider-monogram openai-mark">◎</span><span><strong>OpenAI</strong><small>Eligible account or API access</small></span><b>Connect →</b></button><button class="provider-choice" data-action="provider-preview"><span class="provider-monogram opencode-mark">⌘</span><span><strong>OpenCode</strong><small>Use a model connected in OpenCode</small></span><b>Connect →</b></button><button class="provider-choice" data-action="provider-preview"><span class="provider-monogram claude-mark">✳</span><span><strong>Anthropic</strong><small>Claude API access</small></span><b>Connect →</b></button><label class="spend-label" for="spend-studio">Monthly AI spend limit <strong data-spend-value>$10</strong></label><input id="spend-studio" class="spend-slider" type="range" min="1" max="50" value="10" aria-label="Monthly AI spend limit"><p class="billing-note" data-provider-note>OpenCode uses an existing provider connection; usage follows provider terms. API use may be billed separately. ChatGPT usage sharing needs supported authorization; a Claude plan doesn’t include Console API use. No key is requested in this browser demo.</p><div class="permission-row"><span>Connection controls</span><span>Review access · Set a limit · Disconnect</span></div>
+  </dialog>
+</body>
+</html>

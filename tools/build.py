@@ -36,6 +36,20 @@ def render_body(body):
     out = markdown.markdown(body, extensions=["fenced_code", "tables", "admonition"])
     for i, div in enumerate(stash):
         out = out.replace(f"<p>VIZ{i}TOKEN</p>", div)
+    pair = re.compile(r"(?:(<p(?:\s[^>]*)?>(?:(?!</p>).)*</p>)\s*)?"
+                      r"(<pre>(?:(?!</pre>).)*</pre>)(?:\s*(<pre>(?:(?!</pre>).)*</pre>))?", re.S)
+
+    def example(m):
+        context, first, second = m.groups()
+        if context and second:
+            return f'<div class="compare-pair">{context}{first}{second}</div>'
+        if context:
+            return f'<div class="example-pair">{context}{first}</div>'
+        if second:
+            return f'<div class="code-pair">{first}{second}</div>'
+        return m.group(0)
+
+    out = pair.sub(example, out)
     return out
 
 
@@ -45,7 +59,7 @@ def sidebar(chapters, current):
         if meta["part"] != part:
             part = meta["part"]
             items.append(f'<li class="part">{html.escape(part)}</li>')
-        cur = ' class="cur"' if slug == current else ""
+        cur = ' class="cur" aria-current="page"' if slug == current else ""
         num = slug.split("-")[0]
         items.append(f'<li><a href="{slug}.html"{cur}><span>{num}</span>{html.escape(meta["title"])}</a></li>')
     return "".join(items)
@@ -55,10 +69,21 @@ def page(title, nav, content, pager=""):
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(title)} · {SITE_TITLE}</title>
-<link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="layout"><nav class="side"><a class="brand" href="index.html">{SITE_TITLE}
-<small>A hands-on course for Android developers</small></a><ol>{nav}</ol></nav>
-<main>{content}{pager}</main></div><script src="assets/viz.js"></script></body></html>"""
+<meta name="color-scheme" content="dark">
+<link rel="stylesheet" href="assets/style.css"></head><body class="theme-studio">
+<a class="skip-link" href="#content">Skip to main content</a>
+<div class="layout"><nav class="side" aria-label="Course navigation">
+<a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">p</span>
+<span class="brand-name">{SITE_TITLE}<small>A hands-on course for Android developers</small></span></a>
+<details class="course-nav" open><summary>Course contents</summary><ol>{nav}</ol></details>
+</nav><main id="content" tabindex="-1"><article class="lesson">{content}</article>{pager}</main></div>
+<script>
+const courseNav = document.querySelector(".course-nav");
+const compactNav = window.matchMedia("(max-width: 900px)");
+const syncCourseNav = () => {{ courseNav.open = !compactNav.matches; }};
+syncCourseNav();
+compactNav.addEventListener("change", syncCourseNav);
+</script><script src="assets/viz.js"></script></body></html>"""
 
 
 def main():

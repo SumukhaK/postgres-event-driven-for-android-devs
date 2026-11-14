@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Postgres Lab — Editorial learning lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="prototype.js" defer></script>
+</head>
+<body class="theme-editorial">
+  <div class="app-shell editorial-shell">
+    <aside class="course-rail" aria-label="Course navigation">
+      <a class="brand" href="#" aria-label="Postgres Lab home"><span class="brand-mark">p</span><span>postgres<span class="brand-light">lab</span></span></a>
+      <div class="rail-label">YOUR COURSE <span class="count-pill">11</span></div>
+      <nav class="chapter-list">
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>00</small> Start here</span></a>
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>01</small> Room to PostgreSQL</span></a>
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>02</small> Tables, rows &amp; types</span></a>
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>03</small> Finding data</span></a>
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>04</small> Changing data</span></a>
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>05</small> Joins</span></a>
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>06</small> Aggregates</span></a>
+        <a class="chapter done" href="#"><span class="chapter-state">✓</span><span><small>07</small> Indexes &amp; EXPLAIN</span></a>
+        <a class="chapter current" href="#" aria-current="page"><span class="chapter-state">●</span><span><small>08</small> Transactions &amp; concurrency</span></a>
+        <a class="chapter upcoming" href="#"><span class="chapter-state">09</span><span>FastAPI + Postgres</span></a>
+        <a class="chapter upcoming" href="#"><span class="chapter-state">10</span><span>Event-driven thinking</span></a>
+      </nav>
+      <div class="rail-foot"><span class="avatar">S</span><span><strong>Sam’s learning space</strong><small>Progress saved on this device</small></span><span class="more">···</span></div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar">
+        <div class="crumb"><span>Postgres foundations</span><span class="crumb-sep">/</span><strong>Chapter 08</strong></div>
+        <div class="top-actions"><span class="streak"><span class="streak-dot"></span> 4 day streak</span><button class="button button-quiet" data-dialog="signin">Sign in to sync</button><button class="button button-dark" data-dialog="provider">Connect AI coach</button></div>
+      </header>
+      <div class="workspace editorial-workspace">
+        <article class="lesson-column">
+          <div class="eyebrow"><span class="eyebrow-line"></span> CHAPTER 08 <span class="eyebrow-dot">·</span> 12 MIN</div>
+          <h1>When two orders arrive<br class="desktop-break"> at the same time</h1>
+          <p class="dek">Make a stock update that stays correct, even when Asha and Ravi tap “Order” together.</p>
+          <div class="lesson-meta"><span class="avatar tiny">S</span><span>For Android developers</span><span class="meta-sep">•</span><span>Concept + practice</span></div>
+          <section class="concept-card">
+            <span class="concept-icon" aria-hidden="true">↗</span>
+            <div><strong>Let Postgres do the math.</strong><p>Read, subtract, then write can lose an order. Update from the current value in one statement and let the row lock keep both requests in line.</p></div>
+          </section>
+          <section class="exercise-card" aria-labelledby="exercise-title">
+            <div class="exercise-head"><div><span class="section-kicker">YOUR TURN <span class="difficulty">●●○  PRACTICE</span></span><h2 id="exercise-title">Protect the last chai</h2></div><span class="db-status"><i></i> chaipoint · products</span></div>
+            <p class="exercise-prompt">Two orders of 2 arrive together. Update Masala chai safely and return the new stock count.</p>
+            <div class="editor editor-light" aria-label="SQL example">
+              <div class="editor-bar"><span class="traffic"><i></i><i></i><i></i></span><span>exercise.sql</span><span class="language">SQL</span></div>
+              <pre><span class="line-no">1</span> <span class="sql-key">UPDATE</span> products
+<span class="line-no">2</span> <span class="sql-key">SET</span> stock = stock - <span class="sql-num">2</span>
+<span class="line-no">3</span> <span class="sql-key">WHERE</span> id = <span class="sql-num">1</span> <span class="sql-key">AND</span> stock &gt;= <span class="sql-num">2</span>
+<span class="line-no">4</span> <span class="sql-key">RETURNING</span> stock;</pre>
+            </div>
+            <div class="editor-footer"><span><span class="kbd">⌘</span> + <span class="kbd">↵</span> to run</span><button class="button button-primary" data-action="run"><span aria-hidden="true">▶</span> Run query</button></div>
+            <div class="result-panel" aria-live="polite"><div class="result-title"><span class="result-check">✓</span><strong>Result</strong><span class="run-label" data-run-label>Ready to run</span></div><div class="result-table"><span>stock</span><strong data-stock>200</strong></div><p class="result-note" data-run-feedback>Start with 200 in stock. Run the guarded update to see the result.</p></div>
+          </section>
+          <div class="lesson-bottom"><span><span class="next-dot"></span> Up next: Lock a row with <code>FOR UPDATE</code></span><button class="button button-next" data-action="complete">Mark lesson complete <span aria-hidden="true">→</span></button></div>
+        </article>
+        <aside class="coach-column" aria-label="Learning support">
+          <section class="progress-card"><div class="progress-top"><span class="section-kicker">YOUR PROGRESS</span><strong data-progress>8 <span>/ 11</span></strong></div><div class="progress-track"><i></i></div><p>You’re building real backend intuition.</p><a href="#">View your learning path <span>↗</span></a></section>
+          <section class="coach-card">
+            <div class="coach-title"><span class="coach-orb">✳</span><div><strong>Your learning coach</strong><small>Here when you need a nudge</small></div><span class="live-dot"></span></div>
+            <p class="coach-intro">What would help you move forward?</p>
+            <div class="help-options" role="group" aria-label="Choose a level of help">
+              <button data-help-level="nudge"><span>01</span><span><strong>Give me a nudge</strong><small>A gentle next step</small></span><b>›</b></button>
+              <button data-help-level="hint"><span>02</span><span><strong>Show me a hint</strong><small>Point me to the pattern</small></span><b>›</b></button>
+              <button data-help-level="solution"><span>03</span><span><strong>Walk me through it</strong><small>Solution + why it works</small></span><b>›</b></button>
+            </div>
+            <div class="help-response" data-help-response aria-live="polite"><span class="response-star">✳</span><span>Select a step when you’re ready. Getting help is part of learning.</span></div>
+            <button class="ask-coach" data-dialog="provider"><span>✳</span> Ask the AI coach <span aria-hidden="true">↗</span></button>
+          </section>
+          <div class="coach-foot"><span class="privacy-shield">◇</span><span>Hints keep your progress.<br><a href="#">How AI help works</a></span></div>
+        </aside>
+      </div>
+    </main>
+  </div>
+  <dialog id="signin-dialog" class="app-dialog" aria-labelledby="signin-title">
+    <form method="dialog"><button class="dialog-close" aria-label="Close">×</button></form>
+    <span class="dialog-mark">p</span><p class="dialog-kicker">YOUR LEARNING ACCOUNT</p><h2 id="signin-title">Pick up where you left off.</h2><p class="dialog-copy">Sign in to sync your course progress and keep your notes across devices.</p>
+    <button class="button provider-login" data-action="demo-signin">Continue with ChatGPT <span>↗</span></button><span class="availability">Available in participating apps only.</span>
+    <div class="or-line"><span>or use email</span></div><label class="field-label" for="email-editorial">Email address</label><input id="email-editorial" type="email" placeholder="you@example.com"><button class="button button-primary email-button" data-action="demo-signin">Continue with email</button>
+    <p class="dialog-note" data-account-note>Course sign-in is separate from AI provider access.</p>
+  </dialog>
+  <dialog id="provider-dialog" class="app-dialog provider-dialog" aria-labelledby="provider-title">
+    <form method="dialog"><button class="dialog-close" aria-label="Close">×</button></form>
+    <span class="dialog-kicker">AI COACH SETTINGS</span><h2 id="provider-title">Bring your own AI.</h2><p class="dialog-copy">Choose a model provider for explanations. Your course account stays separate.</p>
+    <button class="provider-choice" data-action="provider-preview"><span class="provider-monogram openai-mark">◎</span><span><strong>OpenAI</strong><small>Use an eligible account or API access</small></span><b>Connect →</b></button>
+    <button class="provider-choice" data-action="provider-preview"><span class="provider-monogram opencode-mark">⌘</span><span><strong>OpenCode</strong><small>Use a model connected in OpenCode</small></span><b>Connect →</b></button><button class="provider-choice" data-action="provider-preview"><span class="provider-monogram claude-mark">✳</span><span><strong>Anthropic</strong><small>Claude model access through API</small></span><b>Connect →</b></button>
+    <label class="spend-label" for="spend-editorial">Monthly AI spend limit <strong data-spend-value>$10</strong></label><input id="spend-editorial" class="spend-slider" type="range" min="1" max="50" value="10" aria-label="Monthly AI spend limit">
+    <p class="billing-note" data-provider-note>OpenCode uses an existing provider connection; usage follows provider terms. API use may be billed separately from consumer plans. ChatGPT usage sharing needs supported authorization; a Claude plan doesn’t include Console API usage. No secret is entered here.</p>
+    <div class="permission-row"><span>Before connecting</span><span>Review permissions · Set a limit · Disconnect any time</span></div>
+  </dialog>
+</body>
+</html>
