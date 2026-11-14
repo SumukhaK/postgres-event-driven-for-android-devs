@@ -104,6 +104,30 @@ ORDER BY name;</textarea>
               <div><strong>Course activities</strong><span id="progress-detail">0 of 11 complete</span></div>
               <progress id="progress-meter" max="11" value="0" aria-label="Course activity progress"></progress>
             </section>
+            <section class="account-card" aria-labelledby="account-title">
+              <div id="signed-out-view">
+                <p class="aside-kicker">YOUR LEARNING ACCOUNT</p>
+                <h2 id="account-title">Save your progress</h2>
+                <p>Your course account syncs completed activities across visits.</p>
+                <form id="account-form">
+                  <label for="account-email">Email</label>
+                  <input id="account-email" name="email" type="email" autocomplete="email" maxlength="254" required>
+                  <label for="account-password">Password <span>12 characters or more</span></label>
+                  <input id="account-password" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+                  <div class="account-actions">
+                    <button class="button button-run" type="submit">Create account</button>
+                    <button class="button button-quiet" id="sign-in" type="button">Sign in</button>
+                  </div>
+                </form>
+              </div>
+              <div id="signed-in-view" hidden>
+                <p class="aside-kicker">SIGNED IN</p>
+                <h2 id="account-email-display"></h2>
+                <p>Your activity progress syncs to this account.</p>
+                <button class="button button-quiet" id="sign-out" type="button">Sign out</button>
+              </div>
+              <p id="account-status" role="status" aria-live="polite">You can practise without signing in.</p>
+            </section>
             <section class="database-card" aria-label="PostgreSQL sandbox status">
               <span class="database-light" aria-hidden="true"></span>
               <span><strong>Local PostgreSQL</strong><small id="database-status" role="status" aria-live="polite">Starting your workspace…</small></span>

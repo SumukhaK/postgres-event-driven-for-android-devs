@@ -74,6 +74,21 @@ body { min-height: 100vh; background: var(--app-bg); color: var(--app-text); }
 .progress-card progress::-webkit-progress-bar { border-radius: 99px; background: #28343d; }
 .progress-card progress::-webkit-progress-value { border-radius: 99px; background: var(--app-accent); }
 .progress-card progress::-moz-progress-bar { border-radius: 99px; background: var(--app-accent); }
+.account-card { padding: 15px; border: 1px solid var(--app-line); border-radius: 8px; background: var(--app-panel); }
+.account-card h2 { margin: 9px 0 5px; color: var(--app-text); font-size: 15px; letter-spacing: -.02em; }
+.account-card p:not(.aside-kicker):not(#account-status) { margin: 0 0 12px; color: #a4b1ba; font-size: 10px; line-height: 1.6; }
+#account-form { display: grid; gap: 6px; }
+#account-form label { margin-top: 3px; color: #bdc9d0; font-size: 10px; font-weight: 600; }
+#account-form label span { color: #7f8f99; font-size: 9px; font-weight: 400; }
+#account-form input { width: 100%; min-width: 0; min-height: 34px; padding: 7px 9px; border: 1px solid #33424c; border-radius: 5px; outline: 0; background: #0c1217; color: var(--app-text); font-family: inherit; font-size: 11px; line-height: 1.4; }
+#account-form input:focus-visible { border-color: #4d9a73; outline: 2px solid #64c68d; outline-offset: 2px; }
+.account-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 5px; }
+.account-actions .button { min-height: 31px; cursor: pointer; }
+#account-status { margin: 10px 0 0; color: #8d9ba5; font-size: 9px; line-height: 1.5; }
+#account-status[data-kind="error"] { color: #ff9b91; }
+#account-status[data-kind="success"] { color: #8fdfae; }
+#signed-in-view[hidden],#signed-out-view[hidden] { display: none; }
+#account-email-display { overflow-wrap: anywhere; }
 .exercise-card { margin: 26px 0 0; padding: 18px; border: 1px solid #315342; border-radius: 10px; background: linear-gradient(130deg, #14241d, #131b22 58%); scroll-margin-top: 76px; }
 .exercise-card[hidden] { display: none; }
 .exercise-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }

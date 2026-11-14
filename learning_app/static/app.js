@@ -21,11 +21,15 @@ const exerciseChoices = document.querySelector("#exercise-choices");
 const exerciseInstruction = document.querySelector("#exercise-instruction");
 const exerciseStatus = document.querySelector("#exercise-status");
 const helpOutput = document.querySelector("#help-output");
+const accountStatus = document.querySelector("#account-status");
+const accountForm = document.querySelector("#account-form");
 const completed = new Set(readCompleted());
 let database;
 let lessons = [];
 let currentExercise;
 let lastQueryResult;
+let currentUser;
+let csrfToken;
 
 function readCompleted() {
   try {
@@ -56,6 +60,99 @@ function finishActivity() {
   exerciseStatus.textContent = "Activity complete. Nice work.";
   updateProgress();
 }
+
+function setAccountStatus(message, kind = "") {
+  accountStatus.textContent = message;
+  accountStatus.dataset.kind = kind;
+}
+
+function renderAccount() {
+  document.querySelector("#signed-out-view").hidden = Boolean(currentUser);
+  document.querySelector("#signed-in-view").hidden = !currentUser;
+  if (currentUser) document.querySelector("#account-email-display").textContent = currentUser.email;
+}
+
+async function sendProgress(slug, isComplete) {
+  const response = await fetch(`/api/progress/${encodeURIComponent(slug)}`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-csrf-token": csrfToken },
+    body: JSON.stringify({ completed: isComplete }),
+  });
+  if (!response.ok) throw new Error("Progress could not be saved to your account.");
+  return response.json();
+}
+
+async function syncAccountProgress() {
+  const response = await fetch("/api/progress");
+  if (!response.ok) throw new Error("Account progress could not be loaded.");
+  const serverActivities = (await response.json()).activities;
+  const serverCompleted = new Set(serverActivities.filter(activity => activity.completed).map(activity => activity.slug));
+  for (const slug of serverCompleted) completed.add(slug);
+  try { localStorage.setItem("postgres-lab-completed", JSON.stringify([...completed])); } catch {}
+  updateProgress();
+  for (const slug of completed) {
+    if (!serverCompleted.has(slug)) await sendProgress(slug, true);
+  }
+  setAccountStatus(`Progress synced · ${completed.size} of ${exercises.length} activities complete.`, "success");
+}
+
+async function loadAccount() {
+  try {
+    const response = await fetch("/api/auth/me");
+    if (!response.ok) throw new Error("Account status could not be loaded.");
+    const data = await response.json();
+    if (!data.user) return;
+    currentUser = data.user;
+    csrfToken = data.csrf_token;
+    renderAccount();
+    await syncAccountProgress();
+  } catch (error) {
+    setAccountStatus(`${error.message} Your browser progress is still available.`, "error");
+  }
+}
+
+async function authenticate(mode) {
+  setAccountStatus(mode === "register" ? "Creating your account…" : "Signing in…");
+  try {
+    const response = await fetch(`/api/auth/${mode}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(Object.fromEntries(new FormData(accountForm))),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail ?? "Account request failed.");
+    currentUser = data.user;
+    csrfToken = data.csrf_token;
+    accountForm.reset();
+    document.querySelector("#account-password").autocomplete = "current-password";
+    renderAccount();
+    await syncAccountProgress();
+  } catch (error) {
+    setAccountStatus(error.message, "error");
+  }
+}
+
+accountForm.addEventListener("submit", event => {
+  event.preventDefault();
+  document.querySelector("#account-password").autocomplete = "new-password";
+  authenticate("register");
+});
+document.querySelector("#sign-in").addEventListener("click", () => {
+  document.querySelector("#account-password").autocomplete = "current-password";
+  authenticate("login");
+});
+document.querySelector("#sign-out").addEventListener("click", async () => {
+  try {
+    const response = await fetch("/api/auth/logout", { method: "POST", headers: { "x-csrf-token": csrfToken } });
+    if (!response.ok) throw new Error("Sign out could not be completed.");
+    currentUser = undefined;
+    csrfToken = undefined;
+    renderAccount();
+    setAccountStatus("Signed out. Progress in this browser is still available.");
+  } catch (error) {
+    setAccountStatus(error.message, "error");
+  }
+});
 
 function renderExercise(lesson) {
   currentExercise = exercises.find(item => item.slug === lesson.slug);
@@ -112,7 +209,7 @@ function checkSqlActivity() {
   return false;
 }
 
-document.querySelector("#check-exercise").addEventListener("click", () => {
+document.querySelector("#check-exercise").addEventListener("click", async () => {
   if (!currentExercise) return;
   const correct = currentExercise.kind === "choice"
     ? exerciseChoices.querySelector("input:checked")?.value === currentExercise.answer
@@ -120,6 +217,14 @@ document.querySelector("#check-exercise").addEventListener("click", () => {
   if (correct) finishActivity();
   else if (currentExercise.kind === "choice") exerciseStatus.textContent = "Not quite. Think it through, then try another answer.";
   else if (lastQueryResult) exerciseStatus.textContent = "That result does not match the check yet. Adjust the query and try again.";
+  if (currentUser) {
+    try {
+      await sendProgress(currentExercise.slug, correct);
+      setAccountStatus("Activity attempt saved to your account.", "success");
+    } catch (error) {
+      setAccountStatus(`${error.message} Your browser progress is still available.`, "error");
+    }
+  }
 });
 
 document.querySelector(".help-controls").addEventListener("click", event => {
@@ -225,6 +330,7 @@ async function start() {
     const requested = decodeURIComponent(location.hash.slice(1));
     await openLesson(lessons.some(item => item.slug === requested) ? requested : lessons[0].slug, { announce: false });
     initializeDatabase();
+    void loadAccount();
   } catch (error) {
     content.replaceChildren(Object.assign(document.createElement("p"), { textContent: error.message }));
     lessonStatus.textContent = error.message;
