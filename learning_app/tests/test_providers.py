@@ -436,6 +436,31 @@ def test_local_ollama_uses_native_chat_with_thinking_disabled(client, monkeypatc
     assert sent["json"]["stream"] is False
 
 
+def test_local_gpt_oss_uses_high_reasoning_and_larger_output_budget(client, monkeypatch):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    providers.save_credentials(1, "local", {
+        "api_base": "http://127.0.0.1:11434/v1", "runtime": "ollama",
+    }, {})
+    sent = {}
+
+    class Completion:
+        status_code = 200
+        def json(self):
+            return {"message": {"content": "The outbox row commits with the order."}}
+
+    monkeypatch.setattr(assistant.httpx, "post", lambda url, **kwargs: sent.update(url=url, **kwargs) or Completion())
+    response = test_client.post("/api/assistant/respond", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": "local", "model": "gpt-oss:20b", "lesson_slug": "10-event-driven-thinking",
+        "action": "ask", "message": "Why use a transactional outbox?",
+    })
+
+    assert response.status_code == 200
+    assert sent["json"]["think"] == "high"
+    assert sent["json"]["options"]["num_predict"] == 2048
+    assert sent["timeout"].read == 600
+
+
 @pytest.mark.parametrize("path,method", [
     ("/api/assistant/models?provider=local", "get"),
     ("/api/assistant/respond", "post"),

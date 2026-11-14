@@ -29,6 +29,12 @@ Qwen3's initial timeouts were caused by the Ollama route not disabling its defau
 
 Scores are based on review against the course schema in `learning_app/static/seed.sql` and lesson material. The 7B score by prompt was 2, 1, 2, 4, 1; Qwen3 14B was 2, 2, 2, 5, 5; ChatGPT was 2, 5, 5, 5, 5. The 7B index explanation was cut off by the 500-token answer cap, which limited its usefulness.
 
+## gpt-oss:20b run (in progress)
+
+Ollama 0.40.16 downloaded the local `gpt-oss:20b` model (13 GB); Qwen3 14B remains installed as the reference. The fixed five prompts above will be sent through the Developer Studio assistant endpoint using an isolated temporary account/database. To prioritize answer quality, the Playground now requests high reasoning for `gpt-oss` and allows 2,048 generated tokens, with a 600-second local request timeout; Qwen3 keeps its prior thinking-disabled/500-token configuration. The model-specific settings are therefore part of the comparison and will be reported with the results. Ollama documents configurable reasoning effort for gpt-oss [in its model page](https://ollama.com/library/gpt-oss).
+
+The first warm-up returned the Playground's 504 after its previous 180-second limit. A retry with the extended limit ended the temporary test-server process; at that point Windows reported about 2.5 GB free RAM and Ollama had no active runner. These are system failures, not model answers, so they are excluded from scores. The five scored prompts have not run yet. Resume after freeing more system memory; no user applications were closed.
+
 ## Recommendation
 
 Prioritize answer accuracy over latency. Of the local models actually retested, Qwen3 14B is the stronger candidate (16/25 versus 10/25 for Qwen2.5 7B), though both made repeated schema mistakes and neither should be treated as a reliable SQL authority yet. Validate the 14B model on better hardware before choosing a local default; its 59-second result on this laptop reflects the current hardware and is not a reason by itself to prefer the less accurate 7B model. The ChatGPT plan scored highest in this small sample (22/25). Include course schema context in every AI prompt and keep generated SQL reviewable. The 4 GB GPU and 16 GB RAM limit local inference speed and model headroom, not the accuracy-first selection criterion.

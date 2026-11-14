@@ -280,13 +280,16 @@ def provider_response(provider, credentials, model, instructions, messages, sess
                 path = path[:-3].rstrip("/")
             root = urlunsplit((parsed.scheme, parsed.netloc, path, "", "")).rstrip("/")
             url = f"{root}/api/chat"
+            gpt_oss = model.lower().startswith("gpt-oss")
             body = {"model": model, "messages": [{"role": "system", "content": instructions}, *messages],
-                    "think": False, "stream": False, "options": {"num_predict": 500}}
+                    "think": "high" if gpt_oss else False, "stream": False,
+                    "options": {"num_predict": 2048 if gpt_oss else 500}}
         else:
             url = f"{credentials['api_base']}/chat/completions"
             body = {"model": model, "messages": [{"role": "system", "content": instructions}, *messages],
                     "max_tokens": 500}
-    timeout = httpx.Timeout(connect=10, read=180, write=15, pool=10) if provider == LOCAL_PROVIDER else 45
+    timeout = httpx.Timeout(connect=10, read=600 if provider == LOCAL_PROVIDER and model.lower().startswith("gpt-oss") else 180,
+                            write=15, pool=10) if provider == LOCAL_PROVIDER else 45
     try:
         response = httpx.post(url, headers=headers, json=body, timeout=timeout,
                               trust_env=provider != LOCAL_PROVIDER)
