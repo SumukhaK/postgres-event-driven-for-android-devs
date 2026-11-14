@@ -80,7 +80,7 @@ SELECT 1;
 If you see a table with the number `1`, you are ready.
 
 !!! tip "No Docker?"
-    Install Postgres from postgresql.org (or `brew install postgresql@16` on a Mac) and run `createdb chaipoint`. Everything in this course works on any Postgres 14 or newer. We tested it on Postgres 16.
+    Install Postgres from postgresql.org (or `brew install postgresql@16` on a Mac) and run `createdb chaipoint`. Everything in this course works on any Postgres 14 or newer. We tested it on Postgres 16. On Windows 10, or if you would rather install nothing at all, see [Appendix A1](A1-install-windows.html): it has step-by-step installs and free browser and cloud options.
 
 ## How to use the diagrams
 
