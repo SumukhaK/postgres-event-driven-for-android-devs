@@ -35,3 +35,13 @@ Work each task in order. Update this file as part of the task, including verific
 
 - [x] All tasks above are complete and end-to-end verification passes.
 - [x] Public deployment is verified, or the exact missing external credentials/host setup is recorded. **Recorded:** GitHub Pages serves static lessons only; there is no deployed full-stack backend or public host configuration. Public hosting requires an HTTPS reverse proxy and `LEARNING_COOKIE_SECURE=1`; ChatGPT plan sign-in is loopback-only, while API-key provider connections work with Docker Compose.
+
+## Phase 4 · Local model providers
+
+- [ ] **T13 · Add secure local endpoint connections** — accept a local OpenAI-compatible base URL and optional API key, validate the target, and store credentials encrypted per Developer Studio account. **Accept:** loopback and `host.docker.internal` endpoints can connect; public, credential-bearing, or malformed URLs are rejected; redirects are not followed.
+- [ ] **T14 · Route model discovery and tutor requests to local servers** — load model IDs from `/v1/models` and send contextual assistant requests to `/v1/chat/completions`. **Accept:** mocked Ollama/vLLM-compatible responses load and answer through existing assistant flow; unknown models and malformed responses fail safely.
+- [ ] **T15 · Add local-model settings and setup docs** — add accessible endpoint/key fields, connected status, replace/disconnect, Compose host routing, and direct-run examples. **Accept:** docs show Ollama/vLLM-compatible URLs for Compose and direct local runs; UI build and backend/provider checks pass.
+
+### Checkpoint · Local models
+
+- [ ] A user can connect a local OpenAI-compatible model, select it in the existing model picker, and use it for lesson help; non-local targets are blocked.
