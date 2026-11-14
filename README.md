@@ -36,3 +36,16 @@ Read it online: https://sumukhak.github.io/postgres-event-driven-for-android-dev
 | [10 · Event-driven thinking](src/10-event-driven-thinking.md) | Event-driven systems | Telling the rest of a system what happened |
 | [A1 · Windows install guide](src/A1-install-windows.md) | Setup | Installing the tools and finding no-install playgrounds |
 | [A2 · Portfolio projects](src/A2-portfolio-projects.md) | Practice projects | Building three low-cost projects to demonstrate what you learned |
+
+## Developer Studio AI assistant experiment
+
+This is an exploratory comparison of the playground assistant using five fixed PostgreSQL lesson prompts. Latency is the full time from submitting a prompt to receiving the complete answer. Each model received one warm-up request; scored latency below excludes that request. The assistant currently times out provider requests after 45 seconds. Each answer is scored out of 5: correctness (0–2), usefulness of the explanation (0–2), and avoiding unsupported claims (0–1).
+
+| Round | Model | Mean answer latency | Score | Result |
+| --- | --- | ---: | ---: | --- |
+| 1 | Qwen2.5 7B Instruct (`qwen2.5:7b-instruct`) | 37.9 s | 2/25 | 3/5 requests timed out. Both completed SQL suggestions used table or column names absent from the course schema. |
+| 2 | Gemma 3 12B (`gemma3:12b`) | 45.5 s | 0/25 | 5/5 requests timed out. Model removed after the round, as requested. |
+| 3 | Qwen3 14B (`qwen3:14b`) | 45.6 s | 0/25 | 5/5 requests timed out. Model remains installed locally. |
+| 4 | ChatGPT plan | Pending | Pending | Local sign-in and account consent are still in progress. |
+
+The larger local models did not return usable answers within the playground's current timeout on this laptop. Their answer accuracy therefore could not be scored; these results do not establish that they hallucinate more. The detailed prompt set and per-round notes are in [`tasks/local-model-evaluation.md`](tasks/local-model-evaluation.md).
