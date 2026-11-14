@@ -8,7 +8,10 @@ The course site uses a dark, code-first workspace with lessons, runnable example
 
 ![Developer Studio learning workspace](screenshots/developer-studio.png)
 
-GitHub Pages hosts the static reading course. For account-backed progress, the PostgreSQL sandbox, and optional AI help, run the full-stack app using the [Developer Studio setup guide](learning_app/README.md).
+GitHub Pages hosts the static reading course. The full-stack Developer Studio adds account-backed progress, the PostgreSQL sandbox, and optional AI help. After starting it locally, [open Developer Studio](http://127.0.0.1:8000/).
+
+- [Run locally with Docker Compose](learning_app/README.md#run-with-docker-compose)
+- [Run directly on your machine for ChatGPT plan sign-in](learning_app/README.md#run-directly-on-your-machine)
 
 Read it online: https://sumukhak.github.io/postgres-event-driven-for-android-devs/ (after GitHub Pages is switched to "GitHub Actions").
 
