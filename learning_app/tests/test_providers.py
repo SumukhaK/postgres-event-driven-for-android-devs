@@ -299,6 +299,102 @@ def test_assistant_lists_models_and_sends_only_selected_lesson_context(client, m
     assert sent["json"]["input"] == [{"role": "user", "content": "What joins these rows?"}]
 
 
+@pytest.mark.parametrize("key", ["local-model-test-key-123", ""])
+def test_local_assistant_discovers_models_and_sends_contextual_chat_completion(client, monkeypatch, key):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    base = "http://host.docker.internal:11434/v1"
+    credentials = {"api_base": base}
+    if key:
+        credentials["api_key"] = key
+    providers.save_credentials(1, "local", credentials, {})
+    calls = []
+
+    class ModelResponse:
+        status_code = 200
+        def json(self):
+            return {"data": [{"id": "llama3.1:8b"}, {"id": "invalid model id"}]}
+
+    class Completion:
+        status_code = 200
+        def json(self):
+            return {"choices": [{"message": {"content": "A join connects related rows."}}]}
+
+    def get(url, **kwargs):
+        calls.append(("get", url, kwargs))
+        return ModelResponse()
+
+    def post(url, **kwargs):
+        calls.append(("post", url, kwargs))
+        return Completion()
+
+    monkeypatch.setattr(assistant.httpx, "get", get)
+    monkeypatch.setattr(assistant.httpx, "post", post)
+    models = test_client.get("/api/assistant/models?provider=local")
+    response = test_client.post("/api/assistant/respond", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": "local", "model": "llama3.1:8b", "lesson_slug": "05-joins",
+        "exercise_slug": "05-joins", "action": "ask", "message": "Why use a join?",
+    })
+
+    assert models.json() == {"models": [{"id": "llama3.1:8b", "name": "llama3.1:8b"}]}
+    assert response.status_code == 200
+    assert response.json() == {"answer": "A join connects related rows."}
+    assert calls[0][0:2] == ("get", f"{base}/models")
+    assert calls[1][0:2] == ("post", f"{base}/chat/completions")
+    assert calls[1][2]["headers"].get("Authorization") == (f"Bearer {key}" if key else None)
+    body = calls[1][2]["json"]
+    assert body["model"] == "llama3.1:8b"
+    assert body["messages"][0]["role"] == "system"
+    assert "Current activity: Connect customers to orders" in body["messages"][0]["content"]
+    assert body["messages"][-1] == {"role": "user", "content": "Why use a join?"}
+
+
+@pytest.mark.parametrize("path,method", [
+    ("/api/assistant/models?provider=local", "get"),
+    ("/api/assistant/respond", "post"),
+])
+def test_local_assistant_is_blocked_on_remote_app_hosts(tmp_path, monkeypatch, path, method):
+    monkeypatch.setenv("LEARNING_DB_PATH", str(tmp_path / "learning.sqlite3"))
+    monkeypatch.setenv("LEARNING_CREDENTIAL_KEY", Fernet.generate_key().decode())
+    remote = TestClient(app, base_url="https://learn.example.test", client=("203.0.113.10", 41000))
+    created = remote.post("/api/auth/register", headers={"origin": "https://learn.example.test"}, json={
+        "email": "remote-local-model@example.test", "password": PASSWORD,
+    })
+    providers.save_credentials(1, "local", {"api_base": "http://host.docker.internal:11434/v1"}, {})
+    calls = []
+    monkeypatch.setattr(assistant.httpx, "get", lambda *args, **kwargs: calls.append(args[0]))
+    monkeypatch.setattr(assistant.httpx, "post", lambda *args, **kwargs: calls.append(args[0]))
+    headers = {"origin": "https://learn.example.test", "x-csrf-token": created.json()["csrf_token"]}
+    response = remote.get(path) if method == "get" else remote.post(path, headers=headers, json={
+        "provider": "local", "model": "llama3.1:8b", "lesson_slug": "05-joins",
+        "action": "ask", "message": "Why use a join?",
+    })
+
+    assert response.status_code == 403
+    assert calls == []
+
+
+@pytest.mark.parametrize("status,expected", [(400, 422), (200, 502)])
+def test_local_assistant_rejects_unknown_models_and_malformed_completion(client, monkeypatch, status, expected):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    providers.save_credentials(1, "local", {"api_base": "http://127.0.0.1:11434/v1"}, {})
+
+    class Response:
+        status_code = status
+        def json(self):
+            return {} if status == 200 else {"error": "internal server detail"}
+
+    monkeypatch.setattr(assistant.httpx, "post", lambda *args, **kwargs: Response())
+    response = test_client.post("/api/assistant/respond", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": "local", "model": "missing-model", "lesson_slug": "05-joins",
+        "action": "ask", "message": "Why use a join?",
+    })
+
+    assert response.status_code == expected
+    assert "internal server detail" not in response.text
+
+
 def test_chatgpt_refreshes_and_requires_completed_sse_event(client, monkeypatch):
     test_client, _ = client
     csrf = connect_user(test_client)
