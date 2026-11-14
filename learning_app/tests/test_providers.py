@@ -12,7 +12,7 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from learning_app import providers
+from learning_app import assistant, providers
 from learning_app.credentials import decrypt
 from learning_app.main import app
 
@@ -181,4 +181,181 @@ def test_chatgpt_plan_use_is_blocked_for_remote_hosts(tmp_path, monkeypatch):
     response = remote.post("/api/providers/chatgpt/start",
                            headers={"origin": "https://learn.example.test", "x-csrf-token": created.json()["csrf_token"]})
     assert response.status_code == 403
+
+
+def test_assistant_lists_models_and_sends_only_selected_lesson_context(client, monkeypatch):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    providers.save_credentials(1, "openai", {"api_key": "openai-test-api-key-123456"}, {})
+
+    class ModelResponse:
+        status_code = 200
+        def json(self):
+            return {"data": [{"id": "gpt-test-1"}, {"id": "invalid model id"}]}
+
+    class Completion:
+        status_code = 200
+        def json(self):
+            return {"output": [{"content": [{"type": "output_text", "text": "Use a join condition."}]}]}
+
+    sent = {}
+    monkeypatch.setattr(assistant.httpx, "get", lambda *args, **kwargs: ModelResponse())
+    monkeypatch.setattr(assistant.httpx, "post", lambda url, **kwargs: sent.update(url=url, **kwargs) or Completion())
+    models = test_client.get("/api/assistant/models?provider=openai")
+    assert models.json() == {"models": [{"id": "gpt-test-1", "name": "gpt-test-1"}]}
+    response = test_client.post("/api/assistant/respond", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": "openai", "model": "gpt-test-1", "lesson_slug": "05-joins",
+        "exercise_slug": "05-joins", "action": "ask", "message": "What joins these rows?",
+    })
+    assert response.status_code == 200 and response.json() == {"answer": "Use a join condition."}
+    assert sent["url"] == f"{providers.OPENAI_RESOURCE}/responses"
+    assert sent["json"]["model"] == "gpt-test-1" and sent["json"]["store"] is False
+    assert sent["json"]["instructions"].startswith("You are the PostgreSQL course tutor.")
+    assert "Current activity: Connect customers to orders" in sent["json"]["instructions"]
+    assert sent["json"]["input"] == [{"role": "user", "content": "What joins these rows?"}]
+
+
+def test_chatgpt_refreshes_and_requires_completed_sse_event(client, monkeypatch):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    providers.save_credentials(1, "chatgpt", {
+        "client_id": "oaiapp_test", "access_token": "expired-access", "refresh_token": "old-refresh",
+        "expires_at": 1, "scopes": ["chatgpt.tokens.use.direct"], "email": "learner@example.test",
+    }, {"email": "learner@example.test", "plan_enabled": True})
+    refreshed = {}
+
+    class TokenResponse:
+        status_code = 200
+        def json(self):
+            return {"access_token": "fresh-access", "refresh_token": "rotated-refresh",
+                    "expires_in": 3600, "scope": "chatgpt.tokens.use.direct"}
+
+    class StreamResponse:
+        status_code = 200
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return None
+        def iter_lines(self):
+            yield 'data: {"type":"response.output_text.delta","delta":"A joined table "}'
+            yield 'data: {"type":"response.output_text.delta","delta":"matches related rows."}'
+            yield 'data: {"type":"response.completed","response":{}}'
+
+    def refresh(url, **kwargs):
+        refreshed.update(url=url, **kwargs)
+        return TokenResponse()
+
+    def stream(method, url, **kwargs):
+        refreshed["inference"] = {"method": method, "url": url, **kwargs}
+        return StreamResponse()
+
+    monkeypatch.setattr(providers.httpx, "post", refresh)
+    monkeypatch.setattr(assistant.httpx, "stream", stream)
+    response = test_client.post("/api/assistant/respond", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": "chatgpt", "model": "account-model", "lesson_slug": "05-joins",
+        "exercise_slug": "05-joins", "action": "hint",
+    })
+    assert response.status_code == 200
+    assert response.json()["answer"] == "A joined table matches related rows."
+    assert refreshed["data"]["grant_type"] == "refresh_token"
+    assert refreshed["inference"]["url"] == f"{providers.OPENAI_RESOURCE}/responses"
+    assert refreshed["inference"]["json"]["store"] is False
+    assert refreshed["inference"]["json"]["stream"] is True
+    saved = providers.load_credentials(1, "chatgpt")
+    assert saved["access_token"] == "fresh-access" and saved["refresh_token"] == "rotated-refresh"
+
+
+def test_chatgpt_stream_without_completed_event_is_not_success(client, monkeypatch):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    providers.save_credentials(1, "chatgpt", {
+        "client_id": "oaiapp_test", "access_token": "valid-access", "refresh_token": "valid-refresh",
+        "expires_at": int(time.time()) + 3600, "scopes": ["chatgpt.tokens.use.direct"],
+    }, {"plan_enabled": True})
+
+    class StreamResponse:
+        status_code = 200
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return None
+        def iter_lines(self):
+            yield 'data: {"type":"response.output_text.delta","delta":"partial"}'
+            yield "data: [DONE]"
+
+    monkeypatch.setattr(assistant.httpx, "stream", lambda *args, **kwargs: StreamResponse())
+    response = test_client.post("/api/assistant/respond", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": "chatgpt", "model": "account-model", "lesson_slug": "05-joins", "action": "ask",
+        "message": "Why use a join?",
+    })
+    assert response.status_code == 502
+    assert "before completing" in response.json()["detail"]
+
+
+def test_assistant_provider_errors_are_sanitized(client, monkeypatch):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    providers.save_credentials(1, "openai", {"api_key": "openai-test-api-key-123456"}, {})
+
+    class Limited:
+        status_code = 429
+        text = "provider internals"
+
+    monkeypatch.setattr(assistant.httpx, "post", lambda *args, **kwargs: Limited())
+    response = test_client.post("/api/assistant/respond", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": "openai", "model": "gpt-test-1", "lesson_slug": "05-joins", "action": "ask",
+        "message": "Explain this join.",
+    })
+    assert response.status_code == 429
+    assert "provider internals" not in response.text
+
+
+def test_opencode_go_connection_uses_go_base_and_stable_session(client, monkeypatch):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    go_base = "https://opencode.ai/inference/go"
+    monkeypatch.setattr(providers, "validate_api_key", lambda provider, key: go_base)
+    connected = test_client.post("/api/providers/opencode/key", headers={**ORIGIN, "x-csrf-token": csrf},
+                                 json={"api_key": "opencode-go-test-key-123456"})
+    assert connected.status_code == 200
+    assert providers.load_credentials(1, "opencode")["api_base"] == go_base
+    calls = []
+
+    class Completion:
+        status_code = 200
+        def json(self):
+            return {"choices": [{"message": {"content": "A join matches related rows."}}]}
+
+    def post(url, **kwargs):
+        calls.append((url, kwargs))
+        return Completion()
+
+    monkeypatch.setattr(assistant.httpx, "post", post)
+    response = test_client.post("/api/assistant/respond", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": "opencode", "model": "gpt-test-1", "lesson_slug": "05-joins", "action": "ask",
+        "message": "What does a join do?", "session_id": "ses_1234567890abcdef",
+    })
+    assert response.status_code == 200
+    assert calls[0][0] == f"{go_base}/openai/v1/chat/completions"
+    assert calls[0][1]["headers"]["x-opencode-session"] == "ses_1234567890abcdef"
+
+
+def test_opencode_go_model_list_key_is_detected(monkeypatch):
+    calls = []
+
+    class Denied:
+        status_code = 403
+    class Allowed:
+        status_code = 200
+        def json(self):
+            return {"data": [{"id": "go-model"}]}
+
+    def get(url, **kwargs):
+        calls.append(url)
+        return Denied() if len(calls) == 1 else Allowed()
+
+    monkeypatch.setattr(providers.httpx, "get", get)
+    base = providers.validate_api_key("opencode", "opencode-go-test-key-123456")
+    assert base == "https://opencode.ai/inference/go"
+    assert calls == ["https://opencode.ai/inference/v1/models", "https://opencode.ai/inference/go/v1/models"]
 

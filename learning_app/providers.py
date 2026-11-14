@@ -68,6 +68,49 @@ def load_credentials(user_id, provider):
     return decrypt(row["encrypted_credentials"]) if row else None
 
 
+def chatgpt_access_token(user_id, credentials):
+    if "chatgpt.tokens.use.direct" not in credentials.get("scopes", []):
+        raise HTTPException(status_code=403, detail="Enable ChatGPT plan use in AI connections first.")
+    if credentials.get("access_token") and credentials.get("expires_at", 0) > int(time.time()) + 60:
+        return credentials["access_token"]
+    if not credentials.get("refresh_token"):
+        raise HTTPException(status_code=401, detail="Reconnect ChatGPT to continue.")
+    try:
+        response = httpx.post(OPENAI_TOKEN, data={
+            "grant_type": "refresh_token", "client_id": credentials["client_id"],
+            "refresh_token": credentials["refresh_token"], "resource": OPENAI_RESOURCE,
+        }, headers={"accept": "application/json"}, timeout=15)
+    except httpx.HTTPError:
+        raise HTTPException(status_code=503, detail="ChatGPT is temporarily unavailable. Try again.")
+    try:
+        tokens = response.json()
+    except ValueError:
+        tokens = {}
+    if not isinstance(tokens, dict):
+        tokens = {}
+    if response.status_code != 200:
+        if tokens.get("error") in {"invalid_grant", "invalid_refresh_token", "token_expired", "refresh_token_expired", "refresh_token_invalidated", "refresh_token_reused"}:
+            with database() as db:
+                db.execute("DELETE FROM provider_connections WHERE user_id = ? AND provider = 'chatgpt'", (user_id,))
+            raise HTTPException(status_code=401, detail="Reconnect ChatGPT to continue.")
+        raise HTTPException(status_code=503, detail="ChatGPT could not refresh your connection. Try again.")
+    access_token = tokens.get("access_token")
+    if not access_token:
+        raise HTTPException(status_code=502, detail="ChatGPT returned an incomplete refresh response.")
+    granted_scopes = tokens.get("scope") or " ".join(credentials.get("scopes", []))
+    scopes = set(granted_scopes.split())
+    if "chatgpt.tokens.use.direct" not in scopes:
+        raise HTTPException(status_code=403, detail="Enable ChatGPT plan use in AI connections first.")
+    try:
+        expires_in = max(1, int(tokens.get("expires_in", 3600)))
+    except (TypeError, ValueError):
+        expires_in = 3600
+    refreshed = {**credentials, **tokens, "scopes": sorted(scopes), "expires_at": int(time.time()) + expires_in}
+    save_credentials(user_id, "chatgpt", refreshed,
+                     {"email": refreshed.get("email"), "plan_enabled": True})
+    return access_token
+
+
 def validate_api_key(provider, api_key):
     headers = {"Authorization": f"Bearer {api_key}"}
     if provider == "openai":
@@ -76,7 +119,26 @@ def validate_api_key(provider, api_key):
         url = "https://api.anthropic.com/v1/models"
         headers = {"x-api-key": api_key, "anthropic-version": "2026-10-21"}
     elif provider == "opencode":
-        url = "https://opencode.ai/inference/v1/models"
+        unreachable = False
+        for base in ("https://opencode.ai/inference", "https://opencode.ai/inference/go"):
+            try:
+                response = httpx.get(f"{base}/v1/models", headers=headers, timeout=10)
+            except httpx.HTTPError:
+                unreachable = True
+                continue
+            if response.status_code == 200:
+                try:
+                    models = response.json().get("data")
+                except (ValueError, AttributeError):
+                    models = None
+                if not isinstance(models, list):
+                    raise HTTPException(status_code=502, detail="The provider returned an unexpected response.")
+                return base
+            if response.status_code not in (401, 403):
+                raise HTTPException(status_code=502, detail="The provider could not validate this key right now.")
+        if unreachable:
+            raise HTTPException(status_code=502, detail="The provider could not be reached. Try again.")
+        raise HTTPException(status_code=422, detail="The provider rejected this key or the account does not allow API access.")
     else:
         raise HTTPException(status_code=404, detail="That provider is not supported.")
     try:
@@ -314,8 +376,11 @@ def connect_api_key(provider: str, payload: ApiKeyPayload, request: Request):
     api_key = payload.api_key.strip()
     if not api_key:
         raise HTTPException(status_code=422, detail="Enter an API key.")
-    validate_api_key(provider, api_key)
-    save_credentials(session.user_id, provider, {"api_key": api_key}, {"credential_type": "api_key"})
+    api_base = validate_api_key(provider, api_key)
+    credentials = {"api_key": api_key}
+    if api_base:
+        credentials["api_base"] = api_base
+    save_credentials(session.user_id, provider, credentials, {"credential_type": "api_key"})
     return {"provider": provider, "connected": True}
 
 

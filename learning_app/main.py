@@ -11,6 +11,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from learning_app.auth import check_same_origin, create_session, current_session, hash_password, verify_csrf, verify_password
+from learning_app.assistant import router as assistant_router
 from learning_app.providers import router as provider_router
 from learning_app.storage import database
 
@@ -152,6 +153,7 @@ def update_progress(slug: str, payload: ProgressUpdate, request: Request):
 
 
 app.include_router(provider_router, prefix="/api/providers", tags=["providers"])
+app.include_router(assistant_router, prefix="/api/assistant", tags=["assistant"])
 
 
 @app.get("/")

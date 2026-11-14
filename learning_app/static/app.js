@@ -25,13 +25,24 @@ const accountStatus = document.querySelector("#account-status");
 const accountForm = document.querySelector("#account-form");
 const providerCard = document.querySelector("#provider-card");
 const providerNotice = document.querySelector("#provider-notice");
+const assistantProvider = document.querySelector("#assistant-provider");
+const assistantModel = document.querySelector("#assistant-model");
+const assistantForm = document.querySelector("#assistant-form");
+const assistantQuestion = document.querySelector("#assistant-question");
+const assistantLog = document.querySelector("#assistant-log");
+const assistantStatus = document.querySelector("#assistant-status");
 const completed = new Set(readCompleted());
 let database;
 let lessons = [];
+let currentLesson;
 let currentExercise;
 let lastQueryResult;
 let currentUser;
 let csrfToken;
+let assistantHistory = [];
+let assistantBusy = false;
+let assistantRequestId = 0;
+let assistantSessionId = `ses_${crypto.randomUUID().replaceAll("-", "")}`;
 
 function readCompleted() {
   try {
@@ -74,6 +85,11 @@ function renderAccount() {
   providerCard.hidden = !currentUser;
   if (!currentUser) providerCard.querySelector("details").open = false;
   if (currentUser) document.querySelector("#account-email-display").textContent = currentUser.email;
+  if (!currentUser) {
+    clearAssistantConversation();
+    assistantQuestion.value = "";
+    setAssistantProviders([]);
+  }
 }
 
 async function sendProgress(slug, isComplete) {
@@ -105,6 +121,7 @@ async function loadProviders() {
   const response = await fetch("/api/providers");
   if (!response.ok) throw new Error("AI connection status could not be loaded.");
   const data = await response.json();
+  setAssistantProviders(data.connections);
   providerCard.hidden = false;
   if (!data.credential_storage_ready) providerNotice.textContent = "Secure provider storage is not configured. Static hints are always available.";
   else if (!data.chatgpt_local_available) providerNotice.textContent = "API-key connections are available here. ChatGPT plan sign-in requires the local app.";
@@ -140,6 +157,137 @@ async function loadProviders() {
     history.replaceState(null, "", `${location.pathname}${location.hash}`);
   }
 }
+
+function setAssistantProviders(connections) {
+  const available = currentUser ? connections.filter(item => item.connected && (item.provider !== "chatgpt" || item.plan_enabled)) : [];
+  const selected = available.some(item => item.provider === assistantProvider.value) ? assistantProvider.value : "";
+  assistantProvider.replaceChildren(new Option("Choose a connected provider", ""));
+  for (const item of available) assistantProvider.add(new Option(
+    item.provider === "chatgpt" ? "ChatGPT plan" : ({openai: "OpenAI API", anthropic: "Claude API", opencode: "OpenCode Console"})[item.provider], item.provider,
+  ));
+  assistantProvider.value = selected;
+  assistantProvider.disabled = available.length === 0;
+  if (!currentUser) assistantStatus.textContent = "Sign in and connect an AI provider to ask about this lesson. Static hints always work without AI.";
+  else if (!available.length) assistantStatus.textContent = "Connect an AI provider in your account panel. Static hints always work without AI.";
+  else assistantStatus.textContent = "Choose a provider to load its models. Lesson context is sent only when you ask for help.";
+  if (!selected) {
+    assistantModel.replaceChildren(new Option("Choose a provider first", ""));
+    assistantModel.disabled = true;
+  }
+  updateAssistantControls();
+}
+
+function updateAssistantControls() {
+  const enabled = Boolean(currentUser && assistantProvider.value && assistantModel.value && !assistantBusy);
+  assistantModel.disabled = !assistantProvider.value || assistantBusy;
+  assistantQuestion.disabled = !enabled;
+  assistantForm.querySelector("button[type=submit]").disabled = !enabled;
+  document.querySelectorAll("[data-assistant-action]").forEach(button => { button.disabled = !enabled; });
+}
+
+function clearAssistantConversation() {
+  assistantRequestId += 1;
+  assistantBusy = false;
+  assistantSessionId = `ses_${crypto.randomUUID().replaceAll("-", "")}`;
+  assistantHistory = [];
+  assistantLog.replaceChildren();
+  assistantLog.hidden = true;
+  updateAssistantControls();
+}
+
+async function loadAssistantModels() {
+  assistantModel.replaceChildren(new Option("Loading models…", ""));
+  assistantModel.disabled = true;
+  updateAssistantControls();
+  clearAssistantConversation();
+  if (!assistantProvider.value) {
+    assistantModel.replaceChildren(new Option("Choose a provider first", ""));
+    updateAssistantControls();
+    return;
+  }
+  assistantStatus.textContent = "Loading the provider’s available models…";
+  try {
+    const response = await fetch(`/api/assistant/models?provider=${encodeURIComponent(assistantProvider.value)}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail ?? "The model list could not be loaded.");
+    assistantModel.replaceChildren(new Option(data.models.length ? "Choose a model" : "No models available", ""));
+    for (const item of data.models) assistantModel.add(new Option(item.name, item.id));
+    assistantStatus.textContent = data.models.length
+      ? "Select the model you want to use. Each request is sent to this provider."
+      : "This provider did not return any available models.";
+    assistantModel.disabled = data.models.length === 0;
+  } catch (error) {
+    assistantModel.replaceChildren(new Option("Model list unavailable", ""));
+    assistantStatus.textContent = error.message;
+  }
+  updateAssistantControls();
+}
+
+function showAssistantTurn(role, content, kind = "") {
+  const turn = document.createElement("p");
+  turn.className = "assistant-turn";
+  turn.dataset.role = role;
+  if (kind) turn.dataset.kind = kind;
+  turn.textContent = `${role === "user" ? "You" : "Tutor"} · ${content}`;
+  assistantLog.append(turn);
+  assistantLog.hidden = false;
+  assistantLog.scrollTop = assistantLog.scrollHeight;
+  return turn;
+}
+
+async function askAssistant(action, message = "") {
+  if (assistantBusy || !currentUser || !assistantProvider.value || !assistantModel.value || !currentLesson) return;
+  const labels = {nudge: "Give me a nudge.", hint: "Give me a hint.", explanation: "Explain the key idea.", solution: "Show me a complete solution."};
+  const displayMessage = action === "ask" ? message.trim() : labels[action];
+  if (!displayMessage) return;
+  const requestId = ++assistantRequestId;
+  const userTurn = showAssistantTurn("user", displayMessage);
+  const pendingTurn = showAssistantTurn("assistant", "Thinking…");
+  assistantBusy = true;
+  updateAssistantControls();
+  assistantStatus.textContent = "Sending your question to the selected provider…";
+  try {
+    const response = await fetch("/api/assistant/respond", {
+      method: "POST",
+      headers: {"content-type": "application/json", "x-csrf-token": csrfToken},
+      body: JSON.stringify({provider: assistantProvider.value, model: assistantModel.value,
+        lesson_slug: currentLesson.slug, exercise_slug: currentExercise?.slug ?? null,
+        action, message, history: assistantHistory.slice(-6), session_id: assistantSessionId}),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail ?? "The assistant could not answer this request.");
+    if (requestId !== assistantRequestId) return;
+    assistantHistory.push({role: "user", content: displayMessage}, {role: "assistant", content: data.answer});
+    assistantHistory = assistantHistory.slice(-6);
+    pendingTurn.textContent = `Tutor · ${data.answer}`;
+    assistantStatus.textContent = "Answer ready. Ask a follow-up or use a static hint above.";
+    if (action === "ask") assistantQuestion.value = "";
+  } catch (error) {
+    if (requestId !== assistantRequestId) return;
+    userTurn.remove();
+    pendingTurn.dataset.kind = "error";
+    pendingTurn.textContent = `Tutor · ${error.message}`;
+    assistantStatus.textContent = "The request did not complete. Your course progress is unchanged.";
+  } finally {
+    if (requestId === assistantRequestId) {
+      assistantBusy = false;
+      updateAssistantControls();
+    }
+  }
+}
+
+assistantProvider.addEventListener("change", loadAssistantModels);
+assistantModel.addEventListener("change", () => {
+  clearAssistantConversation();
+  updateAssistantControls();
+});
+assistantForm.addEventListener("submit", event => {
+  event.preventDefault();
+  void askAssistant("ask", assistantQuestion.value);
+});
+document.querySelectorAll("[data-assistant-action]").forEach(button => button.addEventListener("click", () => {
+  void askAssistant(button.dataset.assistantAction);
+}));
 
 document.querySelectorAll(".provider-key-form").forEach(form => form.addEventListener("submit", async event => {
   event.preventDefault();
@@ -274,6 +422,7 @@ document.querySelector("#sign-out").addEventListener("click", async () => {
 
 function renderExercise(lesson) {
   currentExercise = exercises.find(item => item.slug === lesson.slug);
+  clearAssistantConversation();
   exerciseCard.hidden = !currentExercise;
   if (!currentExercise) return;
   lastQueryResult = undefined;
@@ -406,6 +555,7 @@ function renderNav() {
 async function openLesson(slug, { announce = true } = {}) {
   const lesson = lessons.find(item => item.slug === slug);
   if (!lesson) return;
+  currentLesson = lesson;
   content.setAttribute("aria-busy", "true");
   lessonStatus.textContent = `Loading ${lesson.title}`;
   try {

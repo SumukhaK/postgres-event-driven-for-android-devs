@@ -59,6 +59,30 @@
               </div>
               <pre class="help-output" id="help-output" role="status" aria-live="polite" hidden></pre>
             </section>
+            <details class="assistant-card" id="assistant-card">
+              <summary><strong>AI learning assistant</strong><span>Optional · uses your selected provider</span></summary>
+              <div class="assistant-body">
+                <p id="assistant-status" role="status" aria-live="polite">Sign in and connect an AI provider to ask about this lesson. Static hints always work without AI.</p>
+                <div class="assistant-selectors">
+                  <label for="assistant-provider">Provider<select id="assistant-provider" disabled><option value="">Choose a connected provider</option></select></label>
+                  <label for="assistant-model">Model<select id="assistant-model" disabled><option value="">Choose a provider first</option></select></label>
+                </div>
+                <div class="assistant-actions" role="group" aria-label="Ask for AI help">
+                  <span>Get help</span>
+                  <button class="help-button" type="button" data-assistant-action="nudge" disabled>Nudge</button>
+                  <button class="help-button" type="button" data-assistant-action="hint" disabled>Hint</button>
+                  <button class="help-button" type="button" data-assistant-action="explanation" disabled>Explain</button>
+                  <button class="help-button" type="button" data-assistant-action="solution" disabled>Solution</button>
+                </div>
+                <div class="assistant-log" id="assistant-log" role="log" aria-live="polite" aria-relevant="additions" hidden></div>
+                <form id="assistant-form">
+                  <label for="assistant-question">Ask about this lesson</label>
+                  <textarea id="assistant-question" rows="3" maxlength="2000" placeholder="What part would you like help with?" required disabled></textarea>
+                  <button class="button button-run" id="assistant-submit" type="submit" disabled>Ask assistant</button>
+                </form>
+                <p class="assistant-privacy">Your question, recent chat, lesson summary, and activity prompt go to the selected provider; its plan limits or API billing apply. Chat stays in memory for this visit only.</p>
+              </div>
+            </details>
             <section class="query-studio" id="sql-practice" aria-labelledby="practice-title">
               <div class="query-studio-head">
                 <div>
