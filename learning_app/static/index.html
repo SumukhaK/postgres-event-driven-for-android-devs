@@ -174,25 +174,16 @@ ORDER BY name;</textarea>
                   </details>
                   <details class="provider-option">
                     <summary><strong>Claude API</strong><span class="provider-state" id="anthropic-state" role="status">Not connected</span></summary>
-                    <div class="provider-controls"><p>Connect a Claude Console API key. Eligible Claude Max, Ultra, and Team plans can link a Console organization for API credits; requests use Console credits, not Claude app messages.</p>
+                    <div class="provider-controls"><p>Connect an Anthropic Console API key. Claude.ai subscriptions do not include Console API usage; API requests use your Console credits or billing. <a href="https://support.anthropic.com/en/articles/9876003-i-subscribe-to-a-paid-claude-ai-plan-why-do-i-have-to-pay-separately-for-api-usage-on-console" target="_blank" rel="noreferrer">Claude plan and API billing details ↗</a></p>
                       <form class="provider-key-form" data-provider="anthropic"><label for="anthropic-key">Console API key</label><input id="anthropic-key" name="api_key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" minlength="8" required><button class="button button-quiet" type="submit">Connect API key</button></form>
                       <button class="provider-disconnect" type="button" data-disconnect="anthropic" hidden>Disconnect</button>
                     </div>
                   </details>
                   <details class="provider-option">
                     <summary><strong>OpenCode Console</strong><span class="provider-state" id="opencode-state" role="status">Not connected</span></summary>
-                    <div class="provider-controls"><p>Usage follows your Console budget or plan. Some free models work only in OpenCode.</p>
+                    <div class="provider-controls"><p>Connect an OpenCode Console API key. Usage follows that Console workspace's budget or Go plan; some free models work only inside OpenCode.</p>
                       <form class="provider-key-form" data-provider="opencode"><label for="opencode-key">Personal API key</label><input id="opencode-key" name="api_key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" minlength="8" required><button class="button button-quiet" type="submit">Connect API key</button></form>
                       <button class="provider-disconnect" type="button" data-disconnect="opencode" hidden>Disconnect</button>
-                    </div>
-                  </details>
-                  <details class="provider-option">
-                    <summary><strong>GitHub Copilot</strong><span class="provider-state" id="copilot-state" role="status">Not connected</span></summary>
-                    <div class="provider-controls"><p>Sign in with GitHub to use eligible Copilot models. Requests use your Copilot subscription; the app does not receive permission to run tools or access repositories. Disconnect removes the saved token here; revoke app authorization in GitHub Settings → Applications.</p>
-                      <button class="button button-quiet" id="connect-copilot" type="button">Sign in with GitHub</button>
-                      <div id="copilot-flow" hidden><p>Enter this code on GitHub:</p><strong id="copilot-code" class="device-code"></strong><p><a id="copilot-verification-link" href="https://github.com/login/device" target="_blank" rel="noreferrer">Open GitHub device sign-in ↗</a></p><p id="copilot-flow-status" role="status" aria-live="polite">Waiting for approval…</p></div>
-                      <button class="provider-disconnect" id="cancel-copilot" type="button" hidden>Cancel sign-in</button>
-                      <button class="provider-disconnect" type="button" data-disconnect="copilot" hidden>Disconnect</button>
                     </div>
                   </details>
                   <details class="provider-option">

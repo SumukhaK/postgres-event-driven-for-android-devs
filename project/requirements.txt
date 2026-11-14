@@ -6,4 +6,3 @@ pytest
 httpx
 markdown
 cryptography
-github-copilot-sdk

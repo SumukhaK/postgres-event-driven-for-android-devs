@@ -44,8 +44,6 @@ let assistantHistory = [];
 let assistantBusy = false;
 let assistantRequestId = 0;
 let assistantSessionId = `ses_${crypto.randomUUID().replaceAll("-", "")}`;
-let copilotFlowId = 0;
-let copilotState;
 
 function readCompleted() {
   try {
@@ -143,11 +141,6 @@ async function loadProviders() {
         ? connection.plan_enabled ? "Reconnect ChatGPT" : "Enable ChatGPT plan use"
         : "Continue with ChatGPT";
       document.querySelector("#chatgpt-usage").hidden = !connection.plan_enabled;
-    } else if (connection.provider === "copilot") {
-      state.textContent = connection.connected ? `Connected · GitHub @${connection.login}` : "Not connected";
-      document.querySelector("#connect-copilot").disabled = !data.copilot_local_available;
-      document.querySelector("#connect-copilot").textContent = connection.connected ? "Reconnect GitHub Copilot" : "Sign in with GitHub";
-      if (!data.copilot_local_available) state.textContent = "Unavailable · configure local GitHub sign-in";
     } else if (connection.provider === "local") {
       state.textContent = connection.connected ? "Connected" : "Not connected";
       const endpoint = document.querySelector("#local-endpoint-detail");
@@ -381,96 +374,6 @@ document.querySelector("#connect-chatgpt").addEventListener("click", async event
     state.dataset.kind = "error";
     button.disabled = false;
   }
-});
-
-document.querySelector("#connect-copilot").addEventListener("click", async event => {
-  const button = event.currentTarget;
-  const state = document.querySelector("#copilot-state");
-  button.disabled = true;
-  state.textContent = "Starting GitHub sign-in…";
-  state.dataset.kind = "";
-  try {
-    const response = await fetch("/api/providers/copilot/start", {
-      method: "POST", headers: { "x-csrf-token": csrfToken },
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.detail ?? "GitHub sign-in could not start.");
-    const verification = new URL(data.verification_uri);
-    if (verification.origin !== "https://github.com" || verification.pathname !== "/login/device") throw new Error("GitHub returned an invalid verification address.");
-    const flow = ++copilotFlowId;
-    copilotState = data.state;
-    document.querySelector("#copilot-code").textContent = data.user_code;
-    document.querySelector("#copilot-verification-link").href = verification.href;
-    document.querySelector("#copilot-flow-status").textContent = "Waiting for GitHub approval…";
-    document.querySelector("#copilot-flow").hidden = false;
-    document.querySelector("#cancel-copilot").hidden = false;
-    button.hidden = true;
-    providerCard.querySelector("details").open = true;
-    void pollCopilot(flow, data.state, data.interval, data.expires_in);
-  } catch (error) {
-    state.textContent = error.message;
-    state.dataset.kind = "error";
-    button.disabled = false;
-  }
-});
-
-async function pollCopilot(flow, state, interval, expiresIn) {
-  const status = document.querySelector("#copilot-flow-status");
-  const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
-  const finish = () => {
-    document.querySelector("#copilot-flow").hidden = true;
-    document.querySelector("#cancel-copilot").hidden = true;
-    const button = document.querySelector("#connect-copilot");
-    button.hidden = false;
-    button.disabled = false;
-  };
-  const started = Date.now();
-  while (flow === copilotFlowId && Date.now() - started < expiresIn * 1000) {
-    await wait(interval * 1000);
-    if (flow !== copilotFlowId) return;
-    try {
-      const response = await fetch("/api/providers/copilot/poll", {
-        method: "POST", headers: { "content-type": "application/json", "x-csrf-token": csrfToken },
-        body: JSON.stringify({ state }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.detail ?? "GitHub sign-in could not be checked.");
-      if (data.status === "pending") { interval = Math.max(interval, data.retry_after ?? interval); continue; }
-      if (data.status === "connected") {
-        status.textContent = `Connected as @${data.login}.`;
-        await loadProviders();
-        providerCard.querySelector("details").open = true;
-        finish();
-        return;
-      }
-      status.textContent = data.status === "denied" ? "GitHub sign-in was declined." :
-        data.status === "expired" ? "The sign-in code expired. Start again." : (data.message ?? "GitHub sign-in could not be completed.");
-      finish();
-      return;
-    } catch (error) {
-      status.textContent = error.message;
-      finish();
-      return;
-    }
-  }
-  if (flow === copilotFlowId) { status.textContent = "The sign-in code expired. Start again."; finish(); }
-}
-
-document.querySelector("#cancel-copilot").addEventListener("click", async () => {
-  copilotFlowId++;
-  if (copilotState) {
-    void fetch("/api/providers/copilot/cancel", {
-      method: "POST", headers: { "content-type": "application/json", "x-csrf-token": csrfToken },
-      body: JSON.stringify({ state: copilotState }),
-    }).catch(() => {});
-    copilotState = undefined;
-  }
-  document.querySelector("#copilot-flow").hidden = true;
-  document.querySelector("#cancel-copilot").hidden = true;
-  const button = document.querySelector("#connect-copilot");
-  button.hidden = false;
-  button.disabled = false;
-  document.querySelector("#copilot-state").textContent = "Sign-in cancelled.";
 });
 
 document.querySelectorAll("[data-disconnect]").forEach(button => button.addEventListener("click", async () => {

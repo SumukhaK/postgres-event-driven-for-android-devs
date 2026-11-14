@@ -11,7 +11,8 @@ The course site uses a dark, code-first workspace with lessons, runnable example
 GitHub Pages hosts the static reading course. The full-stack Developer Studio adds account-backed progress, the PostgreSQL sandbox, and optional AI help. After starting it locally, [open Developer Studio](http://127.0.0.1:8000/).
 
 - [Run locally with Docker Compose](learning_app/README.md#run-with-docker-compose)
-- [Run directly on your machine for ChatGPT or GitHub Copilot sign-in](learning_app/README.md#run-directly-on-your-machine)
+- [Run directly on your machine for ChatGPT plan sign-in](learning_app/README.md#run-directly-on-your-machine)
+- [Connect GPT, Claude, and OpenCode providers](learning_app/README.md#connect-cloud-ai-providers)
 
 Read it online: https://sumukhak.github.io/postgres-event-driven-for-android-devs/ (after GitHub Pages is switched to "GitHub Actions").
 
@@ -46,6 +47,5 @@ The initial comparison exposed a playground timeout/configuration bug, so those 
 | Qwen2.5 7B Instruct (`qwen2.5:7b-instruct`) | 37.1 s | 5/5 | 10/25 | Frequent schema mistakes; outbox answer misstated the transaction boundary. |
 | Qwen3 14B (`qwen3:14b`) | 59.2 s | 5/5 | 16/25 | Better explanations, but schema mistakes remained. Stronger local candidate to validate on better hardware. |
 | ChatGPT plan (`gpt-6.1-sol`) | 9.2 s | 5/5 | 22/25 | One incorrect column name; other answers matched the lesson schema and concepts. |
-| Gemma 3 12B (`gemma3:12b`) | — | — | — | Removed after its initial run; not retested after the timeout fix. |
 
 Accuracy is the priority: latency on this 4 GB GPU / 16 GB RAM laptop should not outweigh answer quality. See the [full prompts, per-prompt latencies, and scoring notes](tasks/local-model-evaluation.md). This is an exploratory five-prompt comparison, not a statistically controlled benchmark.

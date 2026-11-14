@@ -29,27 +29,24 @@ See `tasks/todo.md` for the live task tracker and acceptance/verification criter
 
 ## Phase 5 · Generalize AI provider connections
 
-**Priority:** complete and verify this phase before the planned `gpt-oss:20b` playground experiment.
+**Priority:** make the supported GPT, Claude, and OpenCode connections clear and reliable in the local playground.
 
 The product should present one provider-connection experience while keeping each provider's supported auth and inference behavior explicit. “Sign in with provider” means authorize model usage where a provider officially supports it; it does not mean use OAuth identity tokens as an undocumented inference credential. Keep API-key and local endpoint connections alongside account sign-in, show who bills usage, and report entitlement or unsupported-flow conditions clearly.
 
 Provider feasibility from current official documentation:
 
 - **OpenAI / ChatGPT:** retain the existing ChatGPT plan OAuth integration and OpenAI API-key option.
-- **GitHub Copilot:** use the official SDK with a per-user GitHub OAuth App device flow. Require device flow to be enabled, store refreshable tokens encrypted per account, and pass the selected user's token explicitly; do not shell out to or reuse a private Copilot CLI login.
-- **Anthropic / Claude:** retain Claude Console API keys. Eligible Claude Max, Ultra, and Team plans can link a Claude Console organization and claim API credits, but inference still uses the Console API. Claude Code documents Claude.ai account sign-in for Claude Code; Anthropic's general Claude API authentication docs do not define a third-party consumer-subscription OAuth flow. Do not extract or reuse Claude Code credentials; add subscription sign-in only if Anthropic documents/authorizes an app integration for this use.
-- **OpenCode:** retain its supported Console API key/inference route. OpenCode CLI supports provider-specific OAuth integrations, but that does not automatically grant this app permission or a reusable OpenCode account inference token. Confirm an official supported API/account flow before offering “Sign in with OpenCode.”
+- **Anthropic / Claude:** use Anthropic Console API keys. Claude.ai subscriptions do not include Console API usage; requests are billed from Console credits or API billing. Do not reuse Claude Code credentials as third-party app credentials.
+- **OpenCode:** use OpenCode Console API keys for pay-as-you-go or Go usage. OpenCode CLI provider OAuth is specific to the CLI and does not provide this app a general OpenCode Console inference token.
 - **Other cloud services:** add providers through the same catalog only when official API-key, OAuth/device, or cloud identity integration details and usage/billing terms are defined. Local Ollama/vLLM/OpenAI-compatible endpoints remain a separate connection type.
 
 ### Implementation order and acceptance checks
 
 1. **Connection contract and provider catalog:** describe provider ID, display name, supported auth methods, inference protocol, model discovery, billing source, and entitlement notes as data. Preserve current clients or migrate them compatibly. Acceptance: the UI can render supported methods from the catalog; auth mode is persisted with the encrypted connection; old connections remain usable.
-2. **Official account adapters:** preserve ChatGPT sign-in; implement GitHub Copilot sign-in only if the official SDK/API fits the app's local-server architecture. Acceptance: OAuth/device state, token refresh/expiry, disconnect/revoke, account switching, and entitlement failures are tested without exposing tokens. Unsupported Claude/OpenCode subscription flows remain unavailable with a clear explanation.
-3. **Inference adapters and discovery:** keep authentication independent from request protocol (Responses, Chat Completions, Anthropic Messages, Copilot SDK, local compatible endpoint). Acceptance: each enabled connection discovers only its models, sends lesson context, normalizes errors, and never displays models for a disconnected/expired account.
+2. **Supported sign-in and API-key methods:** retain ChatGPT plan sign-in and the OpenAI, Claude Console, and OpenCode Console API-key connections. Do not add unsupported consumer-plan OAuth or CLI credential reuse.
+3. **Inference adapters and discovery:** keep authentication independent from request protocol (Responses, Chat Completions, Anthropic Messages, local compatible endpoint). Acceptance: each enabled connection discovers only its models, sends lesson context, normalizes errors, and never displays models for a disconnected/expired account.
 4. **Unified connection UI and docs:** show one card per provider with clearly named sign-in/API-key/local methods, usage billing disclosure, connection state, and disconnect. Acceptance: keyboard/accessibility and responsive checks pass; test/mocked flows cover each auth method; local run docs explain provider setup and limits.
-5. **gpt-oss experiment (after phase 5):** connect via Ollama using the generalized local connection path and run the same fixed five-prompt accuracy rubric against Qwen3 14B. Acceptance: save full outputs, correctness/unsupported-claim scores, latency, machine/model settings; do not interpret an app timeout as model accuracy.
-
-**Official references checked:** [Anthropic Claude authentication](https://platform.claude.com/docs/en/manage-claude/authentication), [Claude Code sign-in options](https://docs.anthropic.com/en/docs/claude-code/getting-started), [OpenCode providers](https://opencode.ai/docs/providers/), [OpenCode provider authentication](https://opencode.ai/docs/cli/providers/), and [GitHub Copilot SDK authentication](https://docs.github.com/en/copilot/how-tos/copilot-sdk/auth/authenticate).
+**Official references checked:** [Anthropic API authentication](https://platform.claude.com/docs/en/manage-claude/authentication), [Claude subscription/API billing](https://support.anthropic.com/en/articles/9876003-i-subscribe-to-a-paid-claude-ai-plan-why-do-i-have-to-pay-separately-for-api-usage-on-console), [OpenCode Console API](https://opencode.ai/docs/console/api), and [OpenCode Console models and billing](https://opencode.ai/docs/console/models).
 
 ## Completion checkpoint
 

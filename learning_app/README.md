@@ -57,7 +57,7 @@ To erase all local accounts, progress, and provider connections, run `docker com
 
 ## Run directly on your machine
 
-This path supports ChatGPT plan and GitHub Copilot sign-in, which require a loopback app and browser connection. Install dependencies and build both course and app assets from the repository root:
+This path supports ChatGPT plan sign-in, which requires a loopback app and browser connection. Install dependencies and build both course and app assets from the repository root:
 
 ```powershell
 python -m pip install -r project/requirements.txt
@@ -71,8 +71,6 @@ python -m uvicorn learning_app.main:app --host 127.0.0.1 --port 8000
 
 Open `http://127.0.0.1:8000/`. The health check is `/api/health`; built lessons are served under `/course/`.
 
-To enable GitHub Copilot, create a GitHub OAuth App, enable **Device Flow**, set `$env:GITHUB_COPILOT_CLIENT_ID = "<client ID>"`, and then start Uvicorn. A client secret is not used. The account must have Copilot access. The first model request may download the official Copilot SDK runtime. The app stores the per-user OAuth tokens encrypted with `LEARNING_CREDENTIAL_KEY`; disconnect removes them from the app, and GitHub authorization can also be revoked in the user's GitHub settings.
-
 ## Backend hosting notes
 
 - Keep the app on one instance with a persistent disk mounted at `/data`; this app uses SQLite and is not configured for horizontal scaling.
@@ -81,3 +79,16 @@ To enable GitHub Copilot, create a GitHub OAuth App, enable **Device Flow**, set
 - A hosted backend is separate from GitHub Pages. This repository does not include a deployed backend host or public deployment configuration.
 
 Account storage, interactive exercises, and AI provider connections are tracked in [`../tasks/todo.md`](../tasks/todo.md).
+
+## Connect cloud AI providers
+
+After signing in to Developer Studio, open **AI connections**. The supported account and billing options are:
+
+| Provider | Connection | Where usage is billed |
+| --- | --- | --- |
+| ChatGPT plan | Local **Continue with ChatGPT** sign-in for eligible accounts | Your ChatGPT plan allocation |
+| OpenAI API | OpenAI API key | OpenAI API account; separate from a ChatGPT subscription |
+| Claude | Anthropic Console API key | Anthropic Console credits or API billing; Claude.ai subscriptions do not include Console API usage ([billing details](https://support.anthropic.com/en/articles/9876003-i-subscribe-to-a-paid-claude-ai-plan-why-do-i-have-to-pay-separately-for-api-usage-on-console)) |
+| OpenCode Console | OpenCode Console API key | The Console workspace budget or Go plan; some free models are only available inside OpenCode |
+
+This app connects Claude and OpenCode through their documented inference APIs and keys. It does not reuse tokens from Claude Code or the OpenCode CLI.
