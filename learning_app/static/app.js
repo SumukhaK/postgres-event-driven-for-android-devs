@@ -1,6 +1,7 @@
 import { PGliteWorker } from "@electric-sql/pglite/worker";
 import PGWorker from "./db-worker.js?worker";
 import seedSql from "./seed.sql?raw";
+import exercises from "./exercises.json";
 import "../../site/assets/viz.js";
 
 const nav = document.querySelector("#course-nav");
@@ -15,8 +16,118 @@ const resetDatabaseButton = document.querySelector("#reset-database");
 const queryStatus = document.querySelector("#query-status");
 const resultSummary = document.querySelector("#result-summary");
 const queryResults = document.querySelector("#query-results");
+const exerciseCard = document.querySelector("#exercise-card");
+const exerciseChoices = document.querySelector("#exercise-choices");
+const exerciseInstruction = document.querySelector("#exercise-instruction");
+const exerciseStatus = document.querySelector("#exercise-status");
+const helpOutput = document.querySelector("#help-output");
+const completed = new Set(readCompleted());
 let database;
 let lessons = [];
+let currentExercise;
+let lastQueryResult;
+
+function readCompleted() {
+  try {
+    const value = JSON.parse(localStorage.getItem("postgres-lab-completed") ?? "[]");
+    return Array.isArray(value) ? value.filter(slug => exercises.some(exercise => exercise.slug === slug)) : [];
+  } catch {
+    return [];
+  }
+}
+
+function updateProgress() {
+  const count = completed.size;
+  document.querySelector("#progress-summary").textContent = `${count} / ${exercises.length} activities`;
+  document.querySelector("#progress-detail").textContent = `${count} of ${exercises.length} complete`;
+  document.querySelector("#progress-meter").value = count;
+  nav.querySelectorAll(".lesson-link").forEach(link => {
+    const done = completed.has(link.dataset.slug);
+    link.classList.toggle("is-complete", done);
+    link.querySelector(".lesson-check").textContent = done ? "✓" : "";
+    link.setAttribute("aria-label", done ? `${link.dataset.title}, activity complete` : link.dataset.title);
+  });
+}
+
+function finishActivity() {
+  completed.add(currentExercise.slug);
+  try { localStorage.setItem("postgres-lab-completed", JSON.stringify([...completed])); } catch {}
+  document.querySelector("#exercise-complete").textContent = "Completed";
+  exerciseStatus.textContent = "Activity complete. Nice work.";
+  updateProgress();
+}
+
+function renderExercise(lesson) {
+  currentExercise = exercises.find(item => item.slug === lesson.slug);
+  exerciseCard.hidden = !currentExercise;
+  if (!currentExercise) return;
+  lastQueryResult = undefined;
+  document.querySelector("#exercise-title").textContent = currentExercise.title;
+  document.querySelector("#exercise-prompt").textContent = currentExercise.prompt;
+  const done = completed.has(currentExercise.slug);
+  document.querySelector("#exercise-complete").textContent = done ? "Completed" : "";
+  exerciseStatus.textContent = done ? "You’ve completed this activity. You can practise it again any time." : "Your progress stays in this browser until you sign in.";
+  helpOutput.hidden = true;
+  helpOutput.textContent = "";
+  exerciseChoices.replaceChildren();
+  exerciseChoices.hidden = currentExercise.kind !== "choice";
+  exerciseInstruction.hidden = currentExercise.kind !== "sql";
+  if (currentExercise.kind === "choice") {
+    for (const choice of currentExercise.choices) {
+      const label = document.createElement("label");
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "exercise-answer";
+      input.value = choice.value;
+      const text = document.createElement("span");
+      text.textContent = choice.label;
+      label.append(input, text);
+      exerciseChoices.append(label);
+    }
+  }
+}
+
+function checkSqlActivity() {
+  if (!lastQueryResult) {
+    exerciseStatus.textContent = "Run your query below first. The result will stay here while you check it.";
+    return false;
+  }
+  const rows = lastQueryResult.rows ?? [];
+  if (currentExercise.check === "names") {
+    const names = rows.map(row => row.name).filter(Boolean).sort();
+    return JSON.stringify(names) === JSON.stringify([...currentExercise.expected].sort());
+  }
+  if (currentExercise.check === "updated-samosa") return rows.some(row => row.name === "Samosa" && Number(row.stock) > 32);
+  if (currentExercise.check === "joined-customers") {
+    const names = rows.map(row => row.name).filter(Boolean).sort();
+    return JSON.stringify(names) === JSON.stringify([...currentExercise.expected].sort()) && rows.every(row => Number(Object.entries(row).find(([key]) => key !== "name")?.[1]) > 0);
+  }
+  if (currentExercise.check === "category-counts") {
+    const actual = Object.fromEntries(rows.map(row => [row.category, Number(row.product_count)]));
+    const expected = { Coffee: 1, Snacks: 1, Tea: 2 };
+    return Object.keys(actual).length === 3 && Object.entries(expected).every(([category, count]) => actual[category] === count);
+  }
+  if (currentExercise.check === "explain-products") return rows.some(row => Object.values(row).some(value => /scan on products/i.test(String(value))));
+  if (currentExercise.check === "guarded-stock") return rows.some(row => Number(row.stock) >= 0 && Number(row.stock) < 200);
+  return false;
+}
+
+document.querySelector("#check-exercise").addEventListener("click", () => {
+  if (!currentExercise) return;
+  const correct = currentExercise.kind === "choice"
+    ? exerciseChoices.querySelector("input:checked")?.value === currentExercise.answer
+    : checkSqlActivity();
+  if (correct) finishActivity();
+  else if (currentExercise.kind === "choice") exerciseStatus.textContent = "Not quite. Think it through, then try another answer.";
+  else if (lastQueryResult) exerciseStatus.textContent = "That result does not match the check yet. Adjust the query and try again.";
+});
+
+document.querySelector(".help-controls").addEventListener("click", event => {
+  const level = event.target.closest("[data-help]")?.dataset.help;
+  if (!currentExercise || !level) return;
+  helpOutput.textContent = currentExercise.help[level];
+  helpOutput.hidden = false;
+});
 
 function syncCourseMenu() {
   courseMenu.open = !compactViewport.matches;
@@ -49,12 +160,16 @@ function renderNav() {
       link.className = "lesson-link";
       link.href = `/playground#${encodeURIComponent(lesson.slug)}`;
       link.dataset.slug = lesson.slug;
+      link.dataset.title = lesson.title;
       const number = document.createElement("span");
       number.className = "lesson-number";
       number.textContent = chapterNumber(lesson.slug);
       const title = document.createElement("span");
       title.textContent = lesson.title;
-      link.append(number, title);
+      const check = document.createElement("span");
+      check.className = "lesson-check";
+      check.setAttribute("aria-hidden", "true");
+      link.append(number, title, check);
       item.append(link);
       list.append(item);
     }
@@ -62,6 +177,7 @@ function renderNav() {
     return section;
   }));
   document.querySelector("#lesson-count").textContent = `${lessons.length} lessons`;
+  updateProgress();
 }
 
 async function openLesson(slug, { announce = true } = {}) {
@@ -84,6 +200,7 @@ async function openLesson(slug, { announce = true } = {}) {
     document.querySelector("#brief-summary").textContent = lesson.summary;
     document.querySelector("#reading-link").href = `/course/${encodeURIComponent(slug)}.html`;
     document.title = `${lesson.title} · Postgres Lab`;
+    renderExercise(lesson);
     nav.querySelectorAll(".lesson-link").forEach(link => {
       if (link.dataset.slug === slug) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
@@ -185,9 +302,11 @@ async function runQuery() {
   queryStatus.textContent = "Running query…";
   queryStatus.dataset.kind = "";
   resultSummary.textContent = "Working in your local PostgreSQL sandbox";
+  lastQueryResult = undefined;
   const startTime = performance.now();
   try {
     const result = await database.query(sql);
+    lastQueryResult = result;
     const elapsedMs = Math.round(performance.now() - startTime);
     renderResults(result, elapsedMs);
     queryStatus.textContent = `${result.command ?? "Query"} completed.`;

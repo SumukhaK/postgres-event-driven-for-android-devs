@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "test:sandbox": "node --test learning_app/tests/sandbox.test.mjs"
+    "test:sandbox": "node --test learning_app/tests/sandbox.test.mjs",
+    "test:exercises": "node --test learning_app/tests/exercises.test.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "0.5.16"

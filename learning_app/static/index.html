@@ -29,6 +29,7 @@
       <main class="workspace-main">
         <header class="topbar">
           <div class="topbar-context"><span class="status-dot" aria-hidden="true"></span><span>LEARNING WORKSPACE</span><span class="crumb-divider">/</span><strong id="current-part">Loading course</strong></div>
+          <span class="progress-summary" id="progress-summary" aria-live="polite">0 / 11 activities</span>
           <a class="button button-quiet" id="reading-link" href="/course/index.html">Reading view <span aria-hidden="true">↗</span></a>
         </header>
         <div class="workspace-grid">
@@ -41,6 +42,23 @@
             <article id="lesson-content" class="lesson lesson-body" tabindex="-1">
               <p>Loading lesson content…</p>
             </article>
+            <section class="exercise-card" id="exercise-card" aria-labelledby="exercise-title" hidden>
+              <div class="exercise-heading"><p class="aside-kicker">PRACTICE CHECK</p><span class="exercise-complete" id="exercise-complete"></span></div>
+              <h2 id="exercise-title"></h2>
+              <p id="exercise-prompt"></p>
+              <fieldset id="exercise-choices" hidden><legend class="visually-hidden">Choose an answer</legend></fieldset>
+              <p class="exercise-instruction" id="exercise-instruction" hidden>Run your query in the SQL practice below, then check your result here.</p>
+              <button class="button button-run" id="check-exercise" type="button">Check activity</button>
+              <p id="exercise-status" role="status" aria-live="polite">Your progress stays in this browser until you sign in.</p>
+              <div class="help-controls" role="group" aria-label="Get help">
+                <span>Need a hand?</span>
+                <button class="help-button" type="button" data-help="nudge">Nudge</button>
+                <button class="help-button" type="button" data-help="hint">Hint</button>
+                <button class="help-button" type="button" data-help="solution">Solution</button>
+                <button class="help-button" type="button" data-help="explanation">Explain</button>
+              </div>
+              <pre class="help-output" id="help-output" role="status" aria-live="polite" hidden></pre>
+            </section>
             <section class="query-studio" id="sql-practice" aria-labelledby="practice-title">
               <div class="query-studio-head">
                 <div>
@@ -81,6 +99,10 @@ ORDER BY name;</textarea>
               <p>Read the explanation, use the animated diagrams, and try the SQL examples as you go.</p>
               <a href="#sql-practice">Open SQL practice <span aria-hidden="true">→</span></a>
               <a href="/course/00-start-here.html">How to use this course <span aria-hidden="true">→</span></a>
+            </section>
+            <section class="progress-card" aria-label="Learning progress">
+              <div><strong>Course activities</strong><span id="progress-detail">0 of 11 complete</span></div>
+              <progress id="progress-meter" max="11" value="0" aria-label="Course activity progress"></progress>
             </section>
             <section class="database-card" aria-label="PostgreSQL sandbox status">
               <span class="database-light" aria-hidden="true"></span>

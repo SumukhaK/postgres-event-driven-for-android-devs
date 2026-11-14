@@ -1,0 +1,62 @@
+[
+  {
+    "slug": "00-start-here", "kind": "choice", "title": "Try the course rhythm",
+    "prompt": "What is the most useful way to practise a query from this course?",
+    "choices": [{"value":"copy","label":"Copy it once and move on"},{"value":"practice","label":"Type it, change one thing, and run it again"},{"value":"memorize","label":"Memorize every keyword first"}], "answer": "practice",
+    "help": {"nudge":"Think about what would help you notice how a small change affects the result.","hint":"The course recommends a short loop: write, change, observe.","solution":"Type the example yourself, change one thing, and run it again.","explanation":"Running a changed query makes cause and effect visible. You can return to the same examples as you move through the course."}
+  },
+  {
+    "slug": "01-from-room-to-postgres", "kind": "choice", "title": "Where does server data live?",
+    "prompt": "A mobile app talks to a shared Postgres service. Where is the shared source of truth?",
+    "choices": [{"value":"server","label":"In the server database, reached through the API"},{"value":"phone","label":"Only inside each phone's local Room database"},{"value":"cache","label":"In whichever device most recently opened the app"}], "answer": "server",
+    "help": {"nudge":"Ask which copy every device must agree on.","hint":"Room is local to a device; Postgres is running on a server.","solution":"The server database is the shared source of truth.","explanation":"A local Room database can support offline work, but each device has its own copy. Shared state belongs behind an API in the server database."}
+  },
+  {
+    "slug": "02-tables-rows-types", "kind": "choice", "title": "Choose a price type",
+    "prompt": "Which type is designed to store a price with decimal places such as 4.50?",
+    "choices": [{"value":"integer","label":"INTEGER"},{"value":"numeric","label":"NUMERIC"},{"value":"boolean","label":"BOOLEAN"}], "answer": "numeric",
+    "help": {"nudge":"A price needs to preserve a fractional value.","hint":"Look for the exact-value numeric type used for currency-like amounts.","solution":"Use NUMERIC, for example NUMERIC(8, 2).","explanation":"NUMERIC stores decimal values at the declared precision and scale. INTEGER cannot represent cents, and BOOLEAN stores true or false."}
+  },
+  {
+    "slug": "03-select", "kind": "sql", "title": "Filter and sort products",
+    "prompt": "Return the active products priced below 5, ordered by price from highest to lowest. Include the name and price columns.", "check": "names", "expected": ["Masala Chai", "Samosa"],
+    "help": {"nudge":"You need one condition for active rows and one for price, followed by a sort.","hint":"Combine `is_active = true` with `price < 5`, then sort `price DESC`.","solution":"SELECT name, price FROM products WHERE is_active = true AND price < 5 ORDER BY price DESC;","explanation":"WHERE filters rows before the result is returned. ORDER BY controls their order. Ginger Chai is under 5 but is inactive, so it should not appear."}
+  },
+  {
+    "slug": "04-changing-data", "kind": "sql", "title": "Update a row safely",
+    "prompt": "Increase Samosa stock by one and return its name and new stock value.", "check": "updated-samosa",
+    "help": {"nudge":"Use UPDATE with a WHERE clause so only one product changes.","hint":"Use `stock = stock + 1` and add `RETURNING name, stock`.","solution":"UPDATE products SET stock = stock + 1 WHERE name = 'Samosa' RETURNING name, stock;","explanation":"The WHERE clause scopes the change to Samosa. RETURNING shows the changed row immediately, which helps verify a write."}
+  },
+  {
+    "slug": "05-joins", "kind": "sql", "title": "Connect customers to orders",
+    "prompt": "Return each customer who has an order and the number of their orders. Use a JOIN and show the customer name with an order count.", "check": "joined-customers", "expected": ["Asha Rao", "Ravi Kumar", "Mina Das"],
+    "help": {"nudge":"The customer id connects the two tables.","hint":"Join `customers.id` to `orders.customer_id`, then group by the customer name.","solution":"SELECT customers.name, count(orders.id) AS order_count FROM customers JOIN orders ON orders.customer_id = customers.id GROUP BY customers.name ORDER BY customers.name;","explanation":"The join matches each order to its customer. Grouping by the name lets count() report the number of matching orders for each person."}
+  },
+  {
+    "slug": "06-aggregates", "kind": "sql", "title": "Count products by category",
+    "prompt": "Return one row per category with its product count. Name the columns `category` and `product_count`.", "check": "category-counts",
+    "help": {"nudge":"First group rows that share a category, then count each group.","hint":"Use `GROUP BY category` with `count(*) AS product_count`.","solution":"SELECT category, count(*) AS product_count FROM products GROUP BY category ORDER BY category;","explanation":"GROUP BY creates one group for each category. The aggregate count(*) returns how many product rows are in each group."}
+  },
+  {
+    "slug": "07-indexes-explain", "kind": "sql", "title": "Read a query plan",
+    "prompt": "Run EXPLAIN for a query that filters products to the Tea category.", "check": "explain-products",
+    "help": {"nudge":"EXPLAIN describes the plan without running the query for its rows.","hint":"Put `EXPLAIN` before `SELECT * FROM products WHERE category = 'Tea'`.","solution":"EXPLAIN SELECT * FROM products WHERE category = 'Tea';","explanation":"The tiny seed table will likely use a sequential scan. An index is not automatically faster; PostgreSQL weighs table size and selectivity."}
+  },
+  {
+    "slug": "08-transactions-concurrency", "kind": "sql", "title": "Guard a stock change",
+    "prompt": "Reduce Masala Chai stock by one only when stock is greater than zero, and return the new stock value.", "check": "guarded-stock",
+    "help": {"nudge":"Put the safety condition in the same statement as the stock change.","hint":"Use `WHERE name = 'Masala Chai' AND stock > 0` and return stock.","solution":"UPDATE products SET stock = stock - 1 WHERE name = 'Masala Chai' AND stock > 0 RETURNING stock;","explanation":"The guard and decrement are one atomic statement. If no stock remains, the condition matches no row and stock cannot become negative."}
+  },
+  {
+    "slug": "09-fastapi-postgres", "kind": "choice", "title": "Pass values safely",
+    "prompt": "How should an API pass a user-provided product id into a SQL query?",
+    "choices": [{"value":"parameter","label":"Use a bound parameter such as `WHERE id = $1`"},{"value":"interpolate","label":"Concatenate the value into the SQL string"},{"value":"escape","label":"Remove quote characters by hand, then concatenate"}], "answer": "parameter",
+    "help": {"nudge":"The database driver already has a way to send values separately from SQL text.","hint":"Choose the approach that lets the driver treat the id as data.","solution":"Use a bound parameter, such as `WHERE id = $1`, and pass the id separately.","explanation":"Bound parameters keep user data separate from SQL syntax. Manual concatenation and escaping are easy to get wrong and can enable injection."}
+  },
+  {
+    "slug": "10-event-driven-thinking", "kind": "choice", "title": "Keep an event reliable",
+    "prompt": "What does a transactional outbox protect when an order is placed?",
+    "choices": [{"value":"same-transaction","label":"The order and its event record are saved in the same database transaction"},{"value":"send-first","label":"The app sends the event before saving the order"},{"value":"best-effort","label":"The request tries to publish once and ignores a failure"}], "answer": "same-transaction",
+    "help": {"nudge":"Consider what happens if the database commit succeeds but the network publish fails.","hint":"Persist the fact that an event needs publishing alongside the order.","solution":"Write the order and its outbox event in the same transaction, then publish the event separately with retries.","explanation":"The outbox prevents the order from committing without a durable event record. A separate worker can retry publication without repeating the request."}
+  }
+]
