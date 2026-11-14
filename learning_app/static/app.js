@@ -673,6 +673,7 @@ async function runQuery() {
   runQueryButton.disabled = true;
   resetDatabaseButton.disabled = true;
   queryResults.replaceChildren();
+  queryResults.setAttribute("aria-busy", "true");
   queryStatus.textContent = "Running query…";
   queryStatus.dataset.kind = "";
   resultSummary.textContent = "Working in your local PostgreSQL sandbox";
@@ -690,6 +691,7 @@ async function runQuery() {
     queryStatus.textContent = `Query error: ${error.message}`;
     queryStatus.dataset.kind = "error";
   } finally {
+    queryResults.removeAttribute("aria-busy");
     runQueryButton.disabled = false;
     resetDatabaseButton.disabled = false;
   }
@@ -700,6 +702,7 @@ async function resetDatabase() {
   if (!window.confirm("Reset the local ChaiPoint database to its starter data?")) return;
   runQueryButton.disabled = true;
   resetDatabaseButton.disabled = true;
+  queryResults.setAttribute("aria-busy", "true");
   queryStatus.textContent = "Restoring starter data…";
   queryStatus.dataset.kind = "";
   try {
@@ -714,6 +717,7 @@ async function resetDatabase() {
     queryStatus.textContent = `Reset error: ${error.message}`;
     queryStatus.dataset.kind = "error";
   } finally {
+    queryResults.removeAttribute("aria-busy");
     runQueryButton.disabled = false;
     resetDatabaseButton.disabled = false;
   }
