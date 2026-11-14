@@ -4,3 +4,4 @@ psycopg[binary]
 psycopg-pool
 pytest
 httpx
+markdown

@@ -2,3 +2,9 @@ site/*.html
 __pycache__/
 .pytest_cache/
 *.pyc
+node_modules/
+learning_app/dist/
+data/
+.env
+.env.*
+!.env.example

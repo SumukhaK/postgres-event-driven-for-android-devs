@@ -220,5 +220,6 @@
       p.append(b);
     });
   }
+  window.bootCourseVisualizations = boot;
   document.addEventListener("DOMContentLoaded", boot);
 })();

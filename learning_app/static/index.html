@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>Postgres Lab · Developer Studio</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+    <link rel="stylesheet" href="./app.css">
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body class="theme-studio">
+    <a class="skip-link" href="#lesson-content">Skip to lesson</a>
+    <div class="studio-shell">
+      <aside class="course-rail" aria-label="Course navigation">
+        <a class="brand" href="/playground" aria-label="Postgres Lab home">
+          <span class="brand-mark" aria-hidden="true">p</span>
+          <span class="brand-name">postgres<span class="brand-light">lab</span><small>Developer Studio</small></span>
+        </a>
+        <details class="course-menu" open>
+          <summary>Course map <span id="lesson-count">Loading…</span></summary>
+          <nav id="course-nav" aria-label="Lessons"></nav>
+        </details>
+        <div class="rail-footer">
+          <a href="/course/index.html" class="text-link">Read the course site <span aria-hidden="true">↗</span></a>
+        </div>
+      </aside>
+
+      <main class="workspace-main">
+        <header class="topbar">
+          <div class="topbar-context"><span class="status-dot" aria-hidden="true"></span><span>LEARNING WORKSPACE</span><span class="crumb-divider">/</span><strong id="current-part">Loading course</strong></div>
+          <a class="button button-quiet" id="reading-link" href="/course/index.html">Reading view <span aria-hidden="true">↗</span></a>
+        </header>
+        <div class="workspace-grid">
+          <section class="lesson-panel" aria-labelledby="workspace-title">
+            <div class="lesson-toolbar">
+              <div><p class="eyebrow">POSTGRES LAB <span aria-hidden="true">·</span> <span id="lesson-position">COURSE</span></p><h1 id="workspace-title">Your lesson workspace</h1></div>
+              <span class="lesson-tag" id="lesson-tag">13 lessons</span>
+            </div>
+            <p id="lesson-status" class="visually-hidden" role="status" aria-live="polite"></p>
+            <article id="lesson-content" class="lesson lesson-body" tabindex="-1">
+              <p>Loading lesson content…</p>
+            </article>
+            <section class="query-studio" id="sql-practice" aria-labelledby="practice-title">
+              <div class="query-studio-head">
+                <div>
+                  <p class="aside-kicker">HANDS-ON PRACTICE</p>
+                  <h2 id="practice-title">Try a query</h2>
+                  <p>Run SQL in a PostgreSQL sandbox stored in this browser. It does not touch the course service.</p>
+                </div>
+                <button class="button button-quiet" id="reset-database" type="button">Reset data</button>
+              </div>
+              <label class="editor-label" for="sql-editor">SQL query</label>
+              <textarea id="sql-editor" rows="7" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="editor-help query-status">SELECT name, stock
+FROM products
+ORDER BY name;</textarea>
+              <div class="query-actions">
+                <span id="editor-help">Ctrl/⌘ + Enter to run</span>
+                <button class="button button-run" id="run-query" type="button" disabled>Run query <kbd>Ctrl ↵</kbd></button>
+              </div>
+              <div class="results-panel" aria-labelledby="results-title">
+                <div class="results-header">
+                  <h3 id="results-title">Results</h3>
+                  <span id="result-summary">Run your first query.</span>
+                </div>
+                <p id="query-status" role="status" aria-live="polite">Waiting for the local database…</p>
+                <div class="results-scroll" id="query-results"></div>
+              </div>
+            </section>
+          </section>
+
+          <aside class="lesson-aside" aria-label="Lesson guide">
+            <section class="brief-card">
+              <p class="aside-kicker">LESSON BRIEF</p>
+              <h2 id="brief-title">Getting the course ready</h2>
+              <p id="brief-summary">The lesson outline is loading.</p>
+            </section>
+            <section class="guide-card">
+              <div class="guide-mark" aria-hidden="true">i</div>
+              <h2>Learn at your pace</h2>
+              <p>Read the explanation, use the animated diagrams, and try the SQL examples as you go.</p>
+              <a href="#sql-practice">Open SQL practice <span aria-hidden="true">→</span></a>
+              <a href="/course/00-start-here.html">How to use this course <span aria-hidden="true">→</span></a>
+            </section>
+            <section class="database-card" aria-label="PostgreSQL sandbox status">
+              <span class="database-light" aria-hidden="true"></span>
+              <span><strong>Local PostgreSQL</strong><small id="database-status" role="status" aria-live="polite">Starting your workspace…</small></span>
+            </section>
+            <div class="aside-footer"><span class="privacy-dot" aria-hidden="true"></span>Lesson content comes from this course</div>
+          </aside>
+        </div>
+      </main>
+    </div>
+    <noscript><p class="noscript-note">Turn on JavaScript to navigate lessons in the workspace. <a href="/course/index.html">Open the reading site instead.</a></p></noscript>
+  </body>
+</html>
