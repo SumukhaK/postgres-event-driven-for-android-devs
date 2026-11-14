@@ -39,4 +39,13 @@ Read it online: https://sumukhak.github.io/postgres-event-driven-for-android-dev
 
 ## Developer Studio AI assistant experiment
 
-The initial comparison exposed a playground timeout/configuration bug, so those timeout observations are not counted as model scores. After extending local request handling and disabling Qwen3's default Ollama thinking mode, all five prompts completed for both retained local models. Accuracy is the priority: Qwen3 14B scored 16/25 versus Qwen2.5 7B at 10/25, while ChatGPT scored 22/25. The 14B model is the local candidate to validate on better hardware; latency on this 4 GB GPU / 16 GB RAM laptop should not outweigh answer quality. See the [full prompts, per-prompt latencies, and scoring notes](tasks/local-model-evaluation.md).
+The initial comparison exposed a playground timeout/configuration bug, so those timeout observations are not counted as model scores. After extending local request handling and disabling Qwen3's default Ollama thinking mode, all five prompts completed for both retained local models. Scores are out of 25: correctness, explanation usefulness, and avoiding unsupported claims.
+
+| Model | Mean answer latency | Completed | Score | Summary |
+| --- | ---: | ---: | ---: | --- |
+| Qwen2.5 7B Instruct (`qwen2.5:7b-instruct`) | 37.1 s | 5/5 | 10/25 | Frequent schema mistakes; outbox answer misstated the transaction boundary. |
+| Qwen3 14B (`qwen3:14b`) | 59.2 s | 5/5 | 16/25 | Better explanations, but schema mistakes remained. Stronger local candidate to validate on better hardware. |
+| ChatGPT plan (`gpt-6.1-sol`) | 9.2 s | 5/5 | 22/25 | One incorrect column name; other answers matched the lesson schema and concepts. |
+| Gemma 3 12B (`gemma3:12b`) | — | — | — | Removed after its initial run; not retested after the timeout fix. |
+
+Accuracy is the priority: latency on this 4 GB GPU / 16 GB RAM laptop should not outweigh answer quality. See the [full prompts, per-prompt latencies, and scoring notes](tasks/local-model-evaluation.md). This is an exploratory five-prompt comparison, not a statistically controlled benchmark.
