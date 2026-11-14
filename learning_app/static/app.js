@@ -23,6 +23,8 @@ const exerciseStatus = document.querySelector("#exercise-status");
 const helpOutput = document.querySelector("#help-output");
 const accountStatus = document.querySelector("#account-status");
 const accountForm = document.querySelector("#account-form");
+const providerCard = document.querySelector("#provider-card");
+const providerNotice = document.querySelector("#provider-notice");
 const completed = new Set(readCompleted());
 let database;
 let lessons = [];
@@ -69,6 +71,8 @@ function setAccountStatus(message, kind = "") {
 function renderAccount() {
   document.querySelector("#signed-out-view").hidden = Boolean(currentUser);
   document.querySelector("#signed-in-view").hidden = !currentUser;
+  providerCard.hidden = !currentUser;
+  if (!currentUser) providerCard.querySelector("details").open = false;
   if (currentUser) document.querySelector("#account-email-display").textContent = currentUser.email;
 }
 
@@ -96,6 +100,118 @@ async function syncAccountProgress() {
   setAccountStatus(`Progress synced · ${completed.size} of ${exercises.length} activities complete.`, "success");
 }
 
+async function loadProviders() {
+  if (!currentUser) return;
+  const response = await fetch("/api/providers");
+  if (!response.ok) throw new Error("AI connection status could not be loaded.");
+  const data = await response.json();
+  providerCard.hidden = false;
+  if (!data.credential_storage_ready) providerNotice.textContent = "Secure provider storage is not configured. Static hints are always available.";
+  else if (!data.chatgpt_local_available) providerNotice.textContent = "API-key connections are available here. ChatGPT plan sign-in requires the local app.";
+  else providerNotice.textContent = "Connect a provider for optional AI help. Static hints always work without one.";
+
+  for (const connection of data.connections) {
+    const state = document.querySelector(`#${connection.provider}-state`);
+    const disconnect = document.querySelector(`[data-disconnect="${connection.provider}"]`);
+    if (connection.provider === "chatgpt") {
+      state.textContent = connection.connected
+        ? connection.plan_enabled ? `Connected · ${connection.email ?? "ChatGPT account"} · plan use enabled` : `Connected · ${connection.email ?? "ChatGPT account"} · plan use not enabled`
+        : "Not connected";
+      document.querySelector("#connect-chatgpt").disabled = !data.chatgpt_local_available;
+      document.querySelector("#connect-chatgpt").textContent = connection.connected
+        ? connection.plan_enabled ? "Reconnect ChatGPT" : "Enable ChatGPT plan use"
+        : "Continue with ChatGPT";
+      document.querySelector("#chatgpt-usage").hidden = !connection.plan_enabled;
+    } else {
+      state.textContent = connection.connected ? "Connected · encrypted on this server" : "Not connected";
+      const form = document.querySelector(`.provider-key-form[data-provider="${connection.provider}"]`);
+      form.querySelector("button[type=submit]").textContent = connection.connected ? "Replace API key" : "Connect API key";
+    }
+    disconnect.hidden = !connection.connected;
+    state.dataset.kind = connection.connected ? "success" : "";
+  }
+
+  const callbackResult = new URLSearchParams(location.search).get("chatgpt");
+  if (callbackResult) {
+    providerCard.querySelector("details").open = true;
+    providerNotice.textContent = callbackResult === "connected"
+      ? "ChatGPT connection updated. Check the status above to confirm plan use is enabled."
+      : "ChatGPT sign-in did not complete. Your course progress is unchanged; try again when ready.";
+    history.replaceState(null, "", `${location.pathname}${location.hash}`);
+  }
+}
+
+document.querySelectorAll(".provider-key-form").forEach(form => form.addEventListener("submit", async event => {
+  event.preventDefault();
+  const provider = form.dataset.provider;
+  const state = document.querySelector(`#${provider}-state`);
+  const button = form.querySelector("button[type=submit]");
+  button.disabled = true;
+  state.textContent = "Checking key with the provider…";
+  state.dataset.kind = "";
+  try {
+    const apiKey = new FormData(form).get("api_key");
+    const response = await fetch(`/api/providers/${provider}/key`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-csrf-token": csrfToken },
+      body: JSON.stringify({ api_key: apiKey }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail ?? "The provider key could not be connected.");
+    form.reset();
+    state.textContent = "Connected · encrypted on this server";
+    state.dataset.kind = "success";
+    await loadProviders();
+    providerCard.querySelector("details").open = true;
+  } catch (error) {
+    state.textContent = error.message;
+    state.dataset.kind = "error";
+  } finally {
+    button.disabled = false;
+  }
+}));
+
+document.querySelector("#connect-chatgpt").addEventListener("click", async event => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  try {
+    const response = await fetch("/api/providers/chatgpt/start", {
+      method: "POST", headers: { "x-csrf-token": csrfToken },
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail ?? "ChatGPT sign-in could not start.");
+    location.assign(data.authorization_url);
+  } catch (error) {
+    const state = document.querySelector("#chatgpt-state");
+    state.textContent = error.message;
+    state.dataset.kind = "error";
+    button.disabled = false;
+  }
+});
+
+document.querySelectorAll("[data-disconnect]").forEach(button => button.addEventListener("click", async () => {
+  const provider = button.dataset.disconnect;
+  const state = document.querySelector(`#${provider}-state`);
+  button.disabled = true;
+  try {
+    const response = await fetch(`/api/providers/${provider}`, {
+      method: "DELETE", headers: { "x-csrf-token": csrfToken },
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail ?? "The provider could not be disconnected.");
+    await loadProviders();
+    if (provider === "chatgpt" && !data.remote_revocation_confirmed) {
+      state.textContent = "Local connection removed. Remote revocation was not confirmed; review ChatGPT settings.";
+      state.dataset.kind = "error";
+    }
+  } catch (error) {
+    state.textContent = error.message;
+    state.dataset.kind = "error";
+  } finally {
+    button.disabled = false;
+  }
+}));
+
 async function loadAccount() {
   try {
     const response = await fetch("/api/auth/me");
@@ -106,6 +222,7 @@ async function loadAccount() {
     csrfToken = data.csrf_token;
     renderAccount();
     await syncAccountProgress();
+    try { await loadProviders(); } catch (error) { providerNotice.textContent = error.message; }
   } catch (error) {
     setAccountStatus(`${error.message} Your browser progress is still available.`, "error");
   }
@@ -127,6 +244,7 @@ async function authenticate(mode) {
     document.querySelector("#account-password").autocomplete = "current-password";
     renderAccount();
     await syncAccountProgress();
+    try { await loadProviders(); } catch (error) { providerNotice.textContent = error.message; }
   } catch (error) {
     setAccountStatus(error.message, "error");
   }

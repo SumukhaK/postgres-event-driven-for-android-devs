@@ -36,6 +36,18 @@ def database():
             updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (user_id, lesson_slug)
         );
+        CREATE TABLE IF NOT EXISTS provider_connections (
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            provider TEXT NOT NULL,
+            encrypted_credentials TEXT NOT NULL,
+            metadata TEXT NOT NULL DEFAULT '{}',
+            connected_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (user_id, provider)
+        );
+        CREATE TABLE IF NOT EXISTS runtime_settings (
+            setting_key TEXT PRIMARY KEY,
+            setting_value TEXT NOT NULL
+        );
     """)
     try:
         yield connection

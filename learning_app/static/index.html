@@ -128,6 +128,43 @@ ORDER BY name;</textarea>
               </div>
               <p id="account-status" role="status" aria-live="polite">You can practise without signing in.</p>
             </section>
+            <section class="provider-card" id="provider-card" aria-labelledby="provider-title" hidden>
+              <details>
+                <summary id="provider-title">AI connections <span>Optional</span></summary>
+                <div class="provider-body">
+                  <p id="provider-notice">Connect a model provider to use the learning assistant. Static hints always work.</p>
+                  <details class="provider-option">
+                    <summary><strong>ChatGPT plan</strong><span class="provider-state" id="chatgpt-state" role="status">Not connected</span></summary>
+                    <div class="provider-controls"><p>Eligible Plus/Pro users can opt in. This connection stays on your local app.</p>
+                      <button class="button button-quiet" id="connect-chatgpt" type="button" data-oai-siwc-button>Continue with ChatGPT</button>
+                      <a class="provider-manage" id="chatgpt-usage" href="https://chatgpt.com/#settings/Usage" target="_blank" rel="noreferrer" hidden>Manage ChatGPT usage ↗</a>
+                      <button class="provider-disconnect" type="button" data-disconnect="chatgpt" hidden>Disconnect</button>
+                    </div>
+                  </details>
+                  <details class="provider-option">
+                    <summary><strong>OpenAI API</strong><span class="provider-state" id="openai-state" role="status">Not connected</span></summary>
+                    <div class="provider-controls"><p>API usage is billed separately from your ChatGPT plan.</p>
+                      <form class="provider-key-form" data-provider="openai"><label for="openai-key">API key</label><input id="openai-key" name="api_key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" minlength="8" required><button class="button button-quiet" type="submit">Connect API key</button></form>
+                      <button class="provider-disconnect" type="button" data-disconnect="openai" hidden>Disconnect</button>
+                    </div>
+                  </details>
+                  <details class="provider-option">
+                    <summary><strong>Claude API</strong><span class="provider-state" id="anthropic-state" role="status">Not connected</span></summary>
+                    <div class="provider-controls"><p>Claude.ai Pro/Max does not include Console API usage; Console billing is separate.</p>
+                      <form class="provider-key-form" data-provider="anthropic"><label for="anthropic-key">Console API key</label><input id="anthropic-key" name="api_key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" minlength="8" required><button class="button button-quiet" type="submit">Connect API key</button></form>
+                      <button class="provider-disconnect" type="button" data-disconnect="anthropic" hidden>Disconnect</button>
+                    </div>
+                  </details>
+                  <details class="provider-option">
+                    <summary><strong>OpenCode Console</strong><span class="provider-state" id="opencode-state" role="status">Not connected</span></summary>
+                    <div class="provider-controls"><p>Usage follows your Console budget or plan. Some free models work only in OpenCode.</p>
+                      <form class="provider-key-form" data-provider="opencode"><label for="opencode-key">Personal API key</label><input id="opencode-key" name="api_key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" minlength="8" required><button class="button button-quiet" type="submit">Connect API key</button></form>
+                      <button class="provider-disconnect" type="button" data-disconnect="opencode" hidden>Disconnect</button>
+                    </div>
+                  </details>
+                </div>
+              </details>
+            </section>
             <section class="database-card" aria-label="PostgreSQL sandbox status">
               <span class="database-light" aria-hidden="true"></span>
               <span><strong>Local PostgreSQL</strong><small id="database-status" role="status" aria-live="polite">Starting your workspace…</small></span>
