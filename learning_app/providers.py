@@ -1,10 +1,11 @@
-"""Local-only ChatGPT plan OAuth and encrypted API-key connections."""
+"""Provider OAuth, encrypted API-key, and local endpoint connections."""
 import base64
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import hashlib
 import ipaddress
 import json
 import logging
+import os
 import secrets
 import threading
 import time
@@ -27,7 +28,8 @@ from learning_app.storage import database
 router = APIRouter()
 API_PROVIDERS = {"openai", "anthropic", "opencode"}
 LOCAL_PROVIDER = "local"
-ALL_PROVIDERS = API_PROVIDERS | {"chatgpt", LOCAL_PROVIDER}
+COPILOT_PROVIDER = "copilot"
+ALL_PROVIDERS = API_PROVIDERS | {"chatgpt", COPILOT_PROVIDER, LOCAL_PROVIDER}
 PROVIDER_CATALOG = (
     {"id": "chatgpt", "name": "ChatGPT", "protocol": "openai_responses",
      "billing": "ChatGPT plan usage", "auth_methods": [{"id": "account_oauth", "label": "Continue with ChatGPT"}]},
@@ -37,6 +39,8 @@ PROVIDER_CATALOG = (
      "billing": "Claude Console credits or billing", "auth_methods": [{"id": "api_key", "label": "Connect Console API key"}]},
     {"id": "opencode", "name": "OpenCode Console", "protocol": "opencode_chat",
      "billing": "OpenCode Console plan or budget", "auth_methods": [{"id": "api_key", "label": "Connect API key"}]},
+    {"id": COPILOT_PROVIDER, "name": "GitHub Copilot", "protocol": "github_copilot_sdk",
+     "billing": "Your GitHub Copilot subscription", "auth_methods": [{"id": "oauth_device", "label": "Sign in with GitHub Copilot"}]},
     {"id": LOCAL_PROVIDER, "name": "Local model", "protocol": "openai_compatible_or_native_ollama",
      "billing": "Your device or model host", "auth_methods": [{"id": "local_endpoint", "label": "Connect local endpoint"}]},
 )
@@ -48,8 +52,13 @@ OPENAI_RESOURCE = "https://api.openai.com/v1"
 OPENAI_MODEL_URL = f"{OPENAI_RESOURCE}/models"
 HOST_SETTING = "chatgpt_ext_agent_host_id"
 CLIENT_SETTING_PREFIX = "chatgpt_client_id:"
+GITHUB_DEVICE_CODE_URL = "https://github.com/login/device/code"
+GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token"
+GITHUB_USER_URL = "https://api.github.com/user"
 _pending = {}
 _pending_lock = threading.Lock()
+_pending_copilot = {}
+_pending_copilot_lock = threading.Lock()
 _callback_server = None
 _logger = logging.getLogger(__name__)
 
@@ -61,6 +70,10 @@ class ApiKeyPayload(BaseModel):
 class LocalEndpointPayload(BaseModel):
     base_url: str = Field(min_length=8, max_length=512)
     api_key: str = Field(default="", max_length=2048)
+
+
+class CopilotPollPayload(BaseModel):
+    state: str = Field(min_length=32, max_length=128, pattern=r"^[A-Za-z0-9_-]+$")
 
 
 def encryption_ready():
@@ -257,6 +270,172 @@ def is_local_runtime(request):
     host = urlsplit(str(request.base_url)).hostname or ""
     client = request.client.host if request.client else ""
     return _loopback(host) and _loopback(client)
+
+
+def copilot_client_id():
+    return os.getenv("GITHUB_COPILOT_CLIENT_ID", "").strip()
+
+
+def start_copilot_device_flow(user_id):
+    client_id = copilot_client_id()
+    if not client_id:
+        raise HTTPException(status_code=503, detail="Configure GITHUB_COPILOT_CLIENT_ID to enable GitHub Copilot sign-in.")
+    try:
+        response = httpx.post(GITHUB_DEVICE_CODE_URL, data={
+            "client_id": client_id, "scope": "read:user offline_access",
+        }, headers={"accept": "application/json"}, timeout=15)
+        data = response.json()
+    except (httpx.HTTPError, ValueError):
+        raise HTTPException(status_code=503, detail="GitHub sign-in could not be started. Try again.")
+    if response.status_code != 200 or not isinstance(data, dict):
+        raise HTTPException(status_code=503, detail="GitHub sign-in could not be started. Check the OAuth app configuration.")
+    if data.get("error") == "device_flow_disabled":
+        raise HTTPException(status_code=503, detail="Enable device flow in the GitHub OAuth app settings, then try again.")
+    try:
+        expires_in = min(1800, max(60, int(data["expires_in"])))
+        interval = min(60, max(1, int(data["interval"])))
+        device_code = data["device_code"]
+        user_code = data["user_code"]
+    except (KeyError, TypeError, ValueError):
+        raise HTTPException(status_code=502, detail="GitHub returned an incomplete sign-in response.")
+    if (not isinstance(device_code, str) or len(device_code) > 256
+            or not isinstance(user_code, str) or not re.fullmatch(r"[A-Z0-9-]{4,16}", user_code)
+            or data.get("verification_uri") != "https://github.com/login/device"):
+        raise HTTPException(status_code=502, detail="GitHub returned an invalid sign-in response.")
+    state = secrets.token_urlsafe(32)
+    now = int(time.time())
+    with _pending_copilot_lock:
+        for expired, attempt in list(_pending_copilot.items()):
+            if attempt["expires_at"] <= now or attempt["user_id"] == user_id:
+                _pending_copilot.pop(expired, None)
+        _pending_copilot[state] = {
+            "user_id": user_id, "client_id": client_id, "device_code": device_code, "interval": interval,
+            "last_poll": 0, "expires_at": now + expires_in,
+        }
+    return {"state": state, "user_code": user_code, "verification_uri": data["verification_uri"],
+            "interval": interval, "expires_in": expires_in}
+
+
+def poll_copilot_device_flow(user_id, state):
+    now = int(time.time())
+    with _pending_copilot_lock:
+        attempt = _pending_copilot.get(state)
+        if not attempt or attempt["user_id"] != user_id:
+            raise HTTPException(status_code=404, detail="This GitHub sign-in has expired. Start again.")
+        if attempt["expires_at"] <= now:
+            _pending_copilot.pop(state, None)
+            return {"status": "expired"}
+        wait = attempt["interval"] - (now - attempt["last_poll"])
+        if wait > 0:
+            return {"status": "pending", "retry_after": wait}
+        attempt["last_poll"] = now
+        device_code = attempt["device_code"]
+        client_id = attempt["client_id"]
+        interval = attempt["interval"]
+    try:
+        response = httpx.post(GITHUB_TOKEN_URL, data={
+            "client_id": client_id, "device_code": device_code,
+            "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+        }, headers={"accept": "application/json"}, timeout=15)
+        data = response.json()
+    except (httpx.HTTPError, ValueError):
+        raise HTTPException(status_code=503, detail="GitHub sign-in could not be checked. Try again.")
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=502, detail="GitHub returned an unexpected sign-in response.")
+    error = data.get("error")
+    if error == "authorization_pending":
+        return {"status": "pending", "retry_after": interval}
+    if error == "slow_down":
+        with _pending_copilot_lock:
+            if state in _pending_copilot:
+                _pending_copilot[state]["interval"] = min(60, interval + 5)
+                interval = _pending_copilot[state]["interval"]
+        return {"status": "pending", "retry_after": interval}
+    if error in {"access_denied", "expired_token"}:
+        with _pending_copilot_lock:
+            _pending_copilot.pop(state, None)
+        return {"status": "denied" if error == "access_denied" else "expired"}
+    access_token = data.get("access_token")
+    if response.status_code != 200 or not isinstance(access_token, str) or not access_token.startswith(("gho_", "ghu_")):
+        _logger.warning("GitHub Copilot token exchange failed (%s)", error or "unexpected response")
+        with _pending_copilot_lock:
+            _pending_copilot.pop(state, None)
+        return {"status": "error", "message": "GitHub could not complete sign-in. Check that device flow is enabled."}
+    try:
+        profile = httpx.get(GITHUB_USER_URL, headers={"Authorization": f"Bearer {access_token}",
+                               "accept": "application/vnd.github+json"}, timeout=15)
+        account = profile.json()
+    except (httpx.HTTPError, ValueError):
+        with _pending_copilot_lock:
+            _pending_copilot.pop(state, None)
+        raise HTTPException(status_code=503, detail="GitHub authorized the connection, but the account could not be verified.")
+    if profile.status_code != 200 or not isinstance(account, dict) or not isinstance(account.get("login"), str):
+        with _pending_copilot_lock:
+            _pending_copilot.pop(state, None)
+        raise HTTPException(status_code=502, detail="GitHub authorized the connection, but the account could not be verified.")
+    try:
+        if not isinstance(data.get("refresh_token"), str) or not data["refresh_token"].startswith("ghr_"):
+            raise ValueError("missing refresh token")
+        expires_at = now + max(1, int(data["expires_in"]))
+        refresh_expires_at = now + max(1, int(data["refresh_token_expires_in"]))
+    except (TypeError, ValueError):
+        with _pending_copilot_lock:
+            _pending_copilot.pop(state, None)
+        raise HTTPException(status_code=502, detail="GitHub returned an invalid token lifetime.")
+    credentials = {
+        "client_id": client_id, "login": account["login"], "access_token": access_token,
+        "refresh_token": data.get("refresh_token"), "expires_at": expires_at,
+        "refresh_expires_at": refresh_expires_at,
+    }
+    try:
+        save_credentials(user_id, COPILOT_PROVIDER, credentials,
+                         {"login": account["login"], "credential_type": "github_oauth"})
+    finally:
+        with _pending_copilot_lock:
+            _pending_copilot.pop(state, None)
+    return {"status": "connected", "login": account["login"]}
+
+
+def copilot_access_token(user_id, credentials):
+    now = int(time.time())
+    expires_at = credentials.get("expires_at")
+    if not expires_at or expires_at > now + 60:
+        return credentials["access_token"]
+    refresh_token = credentials.get("refresh_token")
+    if not refresh_token or (credentials.get("refresh_expires_at") or 0) <= now:
+        with database() as db:
+            db.execute("DELETE FROM provider_connections WHERE user_id = ? AND provider = ?", (user_id, COPILOT_PROVIDER))
+        raise HTTPException(status_code=401, detail="Reconnect GitHub Copilot to continue.")
+    try:
+        response = httpx.post(GITHUB_TOKEN_URL, data={
+            "client_id": credentials.get("client_id") or copilot_client_id(),
+            "grant_type": "refresh_token", "refresh_token": refresh_token,
+        }, headers={"accept": "application/json"}, timeout=15)
+        data = response.json()
+    except (httpx.HTTPError, ValueError):
+        raise HTTPException(status_code=503, detail="GitHub Copilot sign-in could not be refreshed. Try again.")
+    if response.status_code != 200:
+        if isinstance(data, dict) and data.get("error") in {
+            "invalid_grant", "invalid_refresh_token", "token_expired", "refresh_token_expired",
+            "refresh_token_invalidated", "refresh_token_reused",
+        }:
+            with database() as db:
+                db.execute("DELETE FROM provider_connections WHERE user_id = ? AND provider = ?", (user_id, COPILOT_PROVIDER))
+            raise HTTPException(status_code=401, detail="Reconnect GitHub Copilot to continue.")
+        raise HTTPException(status_code=503, detail="GitHub Copilot could not refresh your connection. Try again.")
+    if not isinstance(data, dict) or not isinstance(data.get("access_token"), str) or not data["access_token"].startswith(("gho_", "ghu_")):
+        raise HTTPException(status_code=502, detail="GitHub returned an invalid refresh response.")
+    try:
+        if not isinstance(data.get("refresh_token"), str) or not data["refresh_token"].startswith("ghr_"):
+            raise ValueError("missing refresh token")
+        refreshed = {**credentials, **data}
+        refreshed["expires_at"] = now + int(data["expires_in"])
+        refreshed["refresh_expires_at"] = now + int(data["refresh_token_expires_in"])
+    except (TypeError, ValueError, KeyError):
+        raise HTTPException(status_code=502, detail="GitHub returned an invalid token lifetime.")
+    save_credentials(user_id, COPILOT_PROVIDER, refreshed,
+                     {"login": credentials.get("login"), "credential_type": "github_oauth"})
+    return refreshed["access_token"]
 
 
 def is_local_app_url(request):
@@ -481,16 +660,22 @@ def provider_status(request: Request):
     return {
         "credential_storage_ready": encryption_ready(),
         "chatgpt_local_available": is_local_runtime(request) and encryption_ready(),
+        "copilot_local_available": is_local_runtime(request) and encryption_ready() and bool(copilot_client_id()),
         "catalog": [
-            {**provider, "available": provider["id"] != "chatgpt" or (is_local_runtime(request) and encryption_ready())}
+            {**provider, "available": (
+                provider["id"] not in {"chatgpt", COPILOT_PROVIDER}
+                or (is_local_runtime(request) and encryption_ready()
+                    and (provider["id"] != COPILOT_PROVIDER or bool(copilot_client_id())))
+            )}
             for provider in PROVIDER_CATALOG
         ],
         "connections": [
             {"provider": provider, "connected": provider in saved,
              "email": saved.get(provider, {}).get("email"),
              "plan_enabled": bool(saved.get(provider, {}).get("plan_enabled")) if provider == "chatgpt" else None,
+             **({"login": saved[provider].get("login")} if provider == COPILOT_PROVIDER and provider in saved else {}),
              **({"api_base": saved[provider].get("api_base")} if provider == LOCAL_PROVIDER and provider in saved else {})}
-            for provider in ("chatgpt", "openai", "anthropic", "opencode", LOCAL_PROVIDER)
+            for provider in ("chatgpt", "openai", "anthropic", "opencode", COPILOT_PROVIDER, LOCAL_PROVIDER)
         ],
     }
 
@@ -548,6 +733,37 @@ def start_chatgpt(request: Request):
         if client_id:
             existing = {"client_id": client_id}
     return {"authorization_url": begin_chatgpt_signin(session.user_id, str(request.base_url), existing)}
+
+
+@router.post("/copilot/start")
+def start_copilot(request: Request):
+    session = current_session(request)
+    verify_csrf(request, session)
+    if not is_local_runtime(request):
+        raise HTTPException(status_code=403, detail="GitHub Copilot sign-in is available only in the local app.")
+    if not encryption_ready():
+        raise HTTPException(status_code=503, detail="Secure credential storage is not configured on this server.")
+    return start_copilot_device_flow(session.user_id)
+
+
+@router.post("/copilot/poll")
+def poll_copilot(payload: CopilotPollPayload, request: Request):
+    session = current_session(request)
+    verify_csrf(request, session)
+    if not is_local_runtime(request):
+        raise HTTPException(status_code=403, detail="GitHub Copilot sign-in is available only in the local app.")
+    return poll_copilot_device_flow(session.user_id, payload.state)
+
+
+@router.post("/copilot/cancel")
+def cancel_copilot(payload: CopilotPollPayload, request: Request):
+    session = current_session(request)
+    verify_csrf(request, session)
+    with _pending_copilot_lock:
+        attempt = _pending_copilot.get(payload.state)
+        if attempt and attempt["user_id"] == session.user_id:
+            _pending_copilot.pop(payload.state, None)
+    return {"cancelled": True}
 
 
 @router.delete("/{provider}")

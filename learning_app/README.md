@@ -57,7 +57,7 @@ To erase all local accounts, progress, and provider connections, run `docker com
 
 ## Run directly on your machine
 
-This path supports ChatGPT plan sign-in, which requires a loopback app and browser connection. Install dependencies and build both course and app assets from the repository root:
+This path supports ChatGPT plan and GitHub Copilot sign-in, which require a loopback app and browser connection. Install dependencies and build both course and app assets from the repository root:
 
 ```powershell
 python -m pip install -r project/requirements.txt
@@ -70,6 +70,8 @@ python -m uvicorn learning_app.main:app --host 127.0.0.1 --port 8000
 ```
 
 Open `http://127.0.0.1:8000/`. The health check is `/api/health`; built lessons are served under `/course/`.
+
+To enable GitHub Copilot, create a GitHub OAuth App, enable **Device Flow**, set `$env:GITHUB_COPILOT_CLIENT_ID = "<client ID>"`, and then start Uvicorn. A client secret is not used. The account must have Copilot access. The first model request may download the official Copilot SDK runtime. The app stores the per-user OAuth tokens encrypted with `LEARNING_CREDENTIAL_KEY`; disconnect removes them from the app, and GitHub authorization can also be revoked in the user's GitHub settings.
 
 ## Backend hosting notes
 

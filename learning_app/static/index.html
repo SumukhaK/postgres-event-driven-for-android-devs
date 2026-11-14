@@ -187,6 +187,15 @@ ORDER BY name;</textarea>
                     </div>
                   </details>
                   <details class="provider-option">
+                    <summary><strong>GitHub Copilot</strong><span class="provider-state" id="copilot-state" role="status">Not connected</span></summary>
+                    <div class="provider-controls"><p>Sign in with GitHub to use eligible Copilot models. Requests use your Copilot subscription; the app does not receive permission to run tools or access repositories. Disconnect removes the saved token here; revoke app authorization in GitHub Settings → Applications.</p>
+                      <button class="button button-quiet" id="connect-copilot" type="button">Sign in with GitHub</button>
+                      <div id="copilot-flow" hidden><p>Enter this code on GitHub:</p><strong id="copilot-code" class="device-code"></strong><p><a id="copilot-verification-link" href="https://github.com/login/device" target="_blank" rel="noreferrer">Open GitHub device sign-in ↗</a></p><p id="copilot-flow-status" role="status" aria-live="polite">Waiting for approval…</p></div>
+                      <button class="provider-disconnect" id="cancel-copilot" type="button" hidden>Cancel sign-in</button>
+                      <button class="provider-disconnect" type="button" data-disconnect="copilot" hidden>Disconnect</button>
+                    </div>
+                  </details>
+                  <details class="provider-option">
                     <summary><strong>Local model</strong><span class="provider-state" id="local-state" role="status">Not connected</span></summary>
                     <div class="provider-controls"><p>Connect Ollama, vLLM, or another OpenAI-compatible server on this device. Use <code>127.0.0.1</code> for a direct run or <code>host.docker.internal</code> with Docker Compose. Any API key is encrypted per account.</p>
                       <p id="local-endpoint-detail" class="local-endpoint-detail" hidden></p>
