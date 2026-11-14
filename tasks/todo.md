@@ -57,3 +57,13 @@ Work each task in order. Update this file as part of the task, including verific
 - [x] **T21 · Local gpt-oss evaluation — stopped at user request** — closed before any scored prompts because the laptop could not sustain the local 20B run. No model accuracy result was produced. The downloaded model remains installed; no further requests will be run.
 
 Current provider feasibility and official documentation references are recorded in `tasks/plan.md`.
+
+## AI assistant answer quality and latency
+
+- [ ] **T22 · Reconcile lesson and playground schemas** — document the schema expected by each lesson/activity and align source materials, interactive seed data, and tests. **Risk:** course material and the backend sample project intentionally model related but different database schemas; choose per lesson before sending schema context to AI.
+- [ ] **T23 · Add schema-grounded assistant context** — give the tutor only the current environment's relevant table/column definitions; add context assertions and regression cases for known schema mistakes.
+- [ ] **T24 · Measure assistant latency by stage** — capture privacy-preserving end-to-end and Ollama timing fields; rerun the fixed evaluation before claiming a latency gain.
+- [ ] **T25 · Improve perceived response time** — stream incremental answers where provider routes support it; measure time to first visible text separately from completion time.
+- [ ] **T26 · Tune output/residency with evidence** — test concise nudge/hint budgets and optional Ollama model residency against quality, truncation, memory, and latency metrics. No 5–10 second reduction is guaranteed until profiling identifies an actionable bottleneck.
+
+Research and the implementation order are in [`ai-assistant-quality-and-latency.md`](ai-assistant-quality-and-latency.md).
