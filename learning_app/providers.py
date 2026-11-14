@@ -4,6 +4,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import hashlib
 import ipaddress
 import json
+import logging
 import secrets
 import threading
 import time
@@ -34,9 +35,11 @@ OPENAI_TOKEN = f"{OPENAI_ISSUER}/api/accounts/oauth/token"
 OPENAI_RESOURCE = "https://api.openai.com/v1"
 OPENAI_MODEL_URL = f"{OPENAI_RESOURCE}/models"
 HOST_SETTING = "chatgpt_ext_agent_host_id"
+CLIENT_SETTING_PREFIX = "chatgpt_client_id:"
 _pending = {}
 _pending_lock = threading.Lock()
 _callback_server = None
+_logger = logging.getLogger(__name__)
 
 
 class ApiKeyPayload(BaseModel):
@@ -213,6 +216,24 @@ def validate_local_model_endpoint(base_url, api_key):
     return base_url
 
 
+def is_ollama_endpoint(base_url, api_key=""):
+    parsed = urlsplit(base_url)
+    path = parsed.path.rstrip("/")
+    if path.endswith("/v1"):
+        path = path[:-3].rstrip("/")
+    root = urlunsplit((parsed.scheme, parsed.netloc, path, "", "")).rstrip("/")
+    headers = {"accept": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    try:
+        response = httpx.get(f"{root}/api/version", headers=headers, timeout=3,
+                             follow_redirects=False, trust_env=False)
+        body = response.json() if response.status_code == 200 else {}
+    except (httpx.HTTPError, ValueError):
+        return False
+    return isinstance(body, dict) and isinstance(body.get("version"), str)
+
+
 def _loopback(value):
     try:
         return ipaddress.ip_address(value).is_loopback
@@ -238,6 +259,20 @@ def host_id():
         value = f"urn:uuid:{uuid.uuid4()}"
         db.execute("INSERT INTO runtime_settings(setting_key, setting_value) VALUES (?, ?)", (HOST_SETTING, value))
         return value
+
+
+def registration_client_id(user_id):
+    with database() as db:
+        row = db.execute("SELECT setting_value FROM runtime_settings WHERE setting_key = ?",
+                         (f"{CLIENT_SETTING_PREFIX}{user_id}",)).fetchone()
+    return row["setting_value"] if row else None
+
+
+def save_registration_client_id(user_id, client_id):
+    with database() as db:
+        db.execute("INSERT INTO runtime_settings(setting_key, setting_value) VALUES (?, ?) "
+                   "ON CONFLICT(setting_key) DO UPDATE SET setting_value = excluded.setting_value",
+                   (f"{CLIENT_SETTING_PREFIX}{user_id}", client_id))
 
 
 def callback_uri():
@@ -324,6 +359,7 @@ def verify_openai_id_token(token, client_id, nonce):
             raise ValueError("Identity token claims did not match.")
         return claims
     except (httpx.HTTPError, KeyError, StopIteration, TypeError, ValueError, InvalidSignature, json.JSONDecodeError) as error:
+        _logger.warning("ChatGPT identity token validation failed (%s)", type(error).__name__)
         raise ValueError("ChatGPT sign-in could not be verified.") from error
 
 
@@ -331,14 +367,20 @@ def complete_chatgpt_signin(state, code, issued_client_id, error=None):
     with _pending_lock:
         attempt = _pending.pop(state, None) if state else None
     if not attempt or attempt["expires_at"] < int(time.time()) or attempt["state"] != state:
+        _logger.warning("ChatGPT sign-in failed: missing or expired OAuth state")
         return False
     if error or not code:
+        _logger.warning("ChatGPT sign-in was denied or returned no authorization code")
         return False
     client_id = attempt["client_id"] or issued_client_id
     if not client_id or client_id == "dynamic_agent_client":
+        _logger.warning("ChatGPT sign-in failed: authorization response had no issued client ID")
         return False
     if attempt["client_id"] and issued_client_id and issued_client_id != attempt["client_id"]:
+        _logger.warning("ChatGPT sign-in failed: callback client ID did not match pending connection")
         return False
+    if issued_client_id:
+        save_registration_client_id(attempt["user_id"], client_id)
     try:
         response = httpx.post(OPENAI_TOKEN, data={
             "grant_type": "authorization_code", "client_id": client_id, "code": code,
@@ -346,10 +388,20 @@ def complete_chatgpt_signin(state, code, issued_client_id, error=None):
             "resource": OPENAI_RESOURCE,
         }, headers={"accept": "application/json"}, timeout=15)
         if response.status_code != 200:
+            try:
+                payload = response.json()
+                oauth_error = payload.get("error")
+                description = payload.get("error_description", "")
+            except (ValueError, AttributeError):
+                oauth_error = None
+                description = ""
+            _logger.warning("ChatGPT token exchange failed: HTTP %s (%s; %s)", response.status_code,
+                            oauth_error or "no error code", description[:160])
             return False
         tokens = response.json()
         identity_token = tokens.get("id_token")
         if not identity_token:
+            _logger.warning("ChatGPT token response did not include an identity token")
             return False
         identity = verify_openai_id_token(identity_token, client_id, attempt["nonce"])
         scopes = set(tokens.get("scope", "").split())
@@ -363,7 +415,8 @@ def complete_chatgpt_signin(state, code, issued_client_id, error=None):
         save_credentials(attempt["user_id"], "chatgpt", credentials,
                          {"email": identity.get("email"), "plan_enabled": plan_enabled})
         return True
-    except (httpx.HTTPError, ValueError, KeyError, TypeError, CredentialEncryptionUnavailable):
+    except (httpx.HTTPError, ValueError, KeyError, TypeError, CredentialEncryptionUnavailable) as error:
+        _logger.warning("ChatGPT sign-in failed during token handling (%s)", type(error).__name__)
         return False
 
 
@@ -439,6 +492,8 @@ def connect_local_model(payload: LocalEndpointPayload, request: Request):
     credentials = {"api_base": base_url}
     if api_key:
         credentials["api_key"] = api_key
+    if is_ollama_endpoint(base_url, api_key):
+        credentials["runtime"] = "ollama"
     save_credentials(session.user_id, LOCAL_PROVIDER, credentials,
                      {"credential_type": "openai_compatible", "api_base": base_url})
     return {"provider": LOCAL_PROVIDER, "connected": True}
@@ -472,6 +527,10 @@ def start_chatgpt(request: Request):
     if not encryption_ready():
         raise HTTPException(status_code=503, detail="Secure credential storage is not configured on this server.")
     existing = load_credentials(session.user_id, "chatgpt")
+    if not existing:
+        client_id = registration_client_id(session.user_id)
+        if client_id:
+            existing = {"client_id": client_id}
     return {"authorization_url": begin_chatgpt_signin(session.user_id, str(request.base_url), existing)}
 
 

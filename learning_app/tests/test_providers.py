@@ -137,6 +137,32 @@ def test_local_model_endpoint_is_probed_and_saved_encrypted(client, monkeypatch)
     assert providers.load_credentials(1, "local") is None
 
 
+def test_local_ollama_endpoint_is_identified(client, monkeypatch):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+
+    class Response:
+        status_code = 200
+        def __init__(self, body):
+            self.body = body
+        def json(self):
+            return self.body
+
+    def get(url, **kwargs):
+        if url.endswith("/models"):
+            return Response({"data": [{"id": "qwen3:14b"}]})
+        return Response({"version": "0.40.16"})
+
+    monkeypatch.setattr(providers.httpx, "get", get)
+    response = test_client.post("/api/providers/local", headers={**ORIGIN, "x-csrf-token": csrf},
+                                json={"base_url": "http://127.0.0.1:11434/v1", "api_key": ""})
+
+    assert response.status_code == 200
+    assert providers.load_credentials(1, "local") == {
+        "api_base": "http://127.0.0.1:11434/v1", "runtime": "ollama",
+    }
+
+
 @pytest.mark.parametrize("base_url", [
     "http://127.0.0.1:11434/v1",
     "http://localhost:11434/v1",
@@ -230,6 +256,28 @@ def test_local_chatgpt_start_creates_pkce_state_and_one_time_encrypted_connectio
     assert providers.load_credentials(1, "chatgpt") is None
 
 
+def test_chatgpt_registration_client_id_is_reused_after_invalid_grant(client, monkeypatch):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    headers = {**ORIGIN, "x-csrf-token": csrf}
+    started = test_client.post("/api/providers/chatgpt/start", headers=headers)
+    params = parse_qs(urlsplit(started.json()["authorization_url"]).query)
+
+    class InvalidGrant:
+        status_code = 400
+        def json(self):
+            return {"error": "invalid_grant"}
+
+    monkeypatch.setattr(providers.httpx, "post", lambda *args, **kwargs: InvalidGrant())
+    assert providers.complete_chatgpt_signin(params["state"][0], "used-code", "oaiapp_retry") is False
+    assert providers.registration_client_id(1) == "oaiapp_retry"
+
+    retry = test_client.post("/api/providers/chatgpt/start", headers=headers)
+    retry_params = parse_qs(urlsplit(retry.json()["authorization_url"]).query)
+    assert retry_params["client_id"] == ["oaiapp_retry"]
+    assert "agent_name_hint" not in retry_params
+
+
 def test_chatgpt_identity_token_signature_and_claims_are_verified(monkeypatch):
     private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     now = int(time.time())
@@ -304,7 +352,7 @@ def test_assistant_lists_models_and_sends_only_selected_lesson_context(client, m
 def test_local_assistant_discovers_models_and_sends_contextual_chat_completion(client, monkeypatch, key):
     test_client, _ = client
     csrf = connect_user(test_client)
-    base = "http://host.docker.internal:11434/v1"
+    base = "http://host.docker.internal:8000/v1"
     credentials = {"api_base": base}
     if key:
         credentials["api_key"] = key
@@ -344,12 +392,43 @@ def test_local_assistant_discovers_models_and_sends_contextual_chat_completion(c
     assert calls[1][0:2] == ("post", f"{base}/chat/completions")
     assert calls[0][2]["trust_env"] is False
     assert calls[1][2]["trust_env"] is False
+    assert calls[1][2]["timeout"].read == 180
     assert calls[1][2]["headers"].get("Authorization") == (f"Bearer {key}" if key else None)
     body = calls[1][2]["json"]
     assert body["model"] == "llama3.1:8b"
     assert body["messages"][0]["role"] == "system"
     assert "Current activity: Connect customers to orders" in body["messages"][0]["content"]
     assert body["messages"][-1] == {"role": "user", "content": "Why use a join?"}
+
+
+def test_local_ollama_uses_native_chat_with_thinking_disabled(client, monkeypatch):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    providers.save_credentials(1, "local", {
+        "api_base": "http://127.0.0.1:11434/v1", "runtime": "ollama",
+    }, {})
+    sent = {}
+
+    class Completion:
+        status_code = 200
+        def json(self):
+            return {"message": {"content": "SELECT retrieves rows from a database.", "thinking": ""}}
+
+    def post(url, **kwargs):
+        sent.update(url=url, **kwargs)
+        return Completion()
+
+    monkeypatch.setattr(assistant.httpx, "post", post)
+    response = test_client.post("/api/assistant/respond", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": "local", "model": "qwen3:14b", "lesson_slug": "03-select",
+        "action": "ask", "message": "What does SELECT do?",
+    })
+
+    assert response.status_code == 200
+    assert response.json() == {"answer": "SELECT retrieves rows from a database."}
+    assert sent["url"] == "http://127.0.0.1:11434/api/chat"
+    assert sent["json"]["think"] is False
+    assert sent["json"]["stream"] is False
 
 
 @pytest.mark.parametrize("path,method", [
@@ -381,7 +460,7 @@ def test_local_assistant_is_blocked_on_remote_app_hosts(tmp_path, monkeypatch, p
 def test_local_assistant_rejects_unknown_models_and_malformed_completion(client, monkeypatch, status, expected):
     test_client, _ = client
     csrf = connect_user(test_client)
-    providers.save_credentials(1, "local", {"api_base": "http://127.0.0.1:11434/v1"}, {})
+    providers.save_credentials(1, "local", {"api_base": "http://127.0.0.1:8000/v1"}, {})
 
     class Response:
         status_code = status

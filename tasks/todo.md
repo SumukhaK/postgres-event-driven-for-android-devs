@@ -45,3 +45,5 @@ Work each task in order. Update this file as part of the task, including verific
 ### Checkpoint · Local models
 
 - [x] A user can connect a local OpenAI-compatible model, select it in the existing model picker, and use it for lesson help; non-local targets are blocked. **Verified:** T13–T15 checks pass, including Docker host-gateway integration with a local protocol mock.
+
+- [x] **T16 · Fix local-model timeout handling and rerun the evaluation** — use Ollama's native chat API with thinking disabled, allow longer local responses, keep learner progress safe on assistant errors, and replace timeout-based claims with completed-answer scoring. **Verified:** Qwen2.5 7B and Qwen3 14B each completed five prompts; ChatGPT completed the same five. `python -m pytest learning_app/tests -q` passed 35 tests; Vite build, sandbox, and exercise tests passed. **Limit:** the full repository pytest collection needs the missing `psycopg` dependency and real PostgreSQL test database; it could not run here. Gemma 3 12B was removed as requested and was not reinstalled for a post-fix run.

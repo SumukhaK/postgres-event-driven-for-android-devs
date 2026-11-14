@@ -275,7 +275,7 @@ async function askAssistant(action, message = "") {
     userTurn.remove();
     pendingTurn.dataset.kind = "error";
     pendingTurn.textContent = `Tutor · ${error.message}`;
-    assistantStatus.textContent = "The request did not complete. Your course progress is unchanged.";
+    assistantStatus.textContent = "The AI request did not complete. Your progress is safe; use a static hint above or retry after checking the provider.";
   } finally {
     if (requestId === assistantRequestId) {
       assistantBusy = false;

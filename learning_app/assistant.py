@@ -3,6 +3,7 @@ import json
 import re
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlsplit, urlunsplit
 
 import httpx
 from fastapi import APIRouter, HTTPException, Request
@@ -236,14 +237,26 @@ def provider_response(provider, credentials, model, instructions, messages, sess
         body = {"model": model, "messages": [{"role": "system", "content": instructions}, *messages],
                 "max_tokens": 500}
     else:
-        url = f"{credentials['api_base']}/chat/completions"
         headers = {"Content-Type": "application/json"}
         if credentials.get("api_key"):
             headers["Authorization"] = f"Bearer {credentials['api_key']}"
-        body = {"model": model, "messages": [{"role": "system", "content": instructions}, *messages],
-                "max_tokens": 500}
+        parsed = urlsplit(credentials["api_base"])
+        ollama = credentials.get("runtime") == "ollama" or parsed.port == 11434
+        if ollama:
+            path = parsed.path.rstrip("/")
+            if path.endswith("/v1"):
+                path = path[:-3].rstrip("/")
+            root = urlunsplit((parsed.scheme, parsed.netloc, path, "", "")).rstrip("/")
+            url = f"{root}/api/chat"
+            body = {"model": model, "messages": [{"role": "system", "content": instructions}, *messages],
+                    "think": False, "stream": False, "options": {"num_predict": 500}}
+        else:
+            url = f"{credentials['api_base']}/chat/completions"
+            body = {"model": model, "messages": [{"role": "system", "content": instructions}, *messages],
+                    "max_tokens": 500}
+    timeout = httpx.Timeout(connect=10, read=180, write=15, pool=10) if provider == LOCAL_PROVIDER else 45
     try:
-        response = httpx.post(url, headers=headers, json=body, timeout=45,
+        response = httpx.post(url, headers=headers, json=body, timeout=timeout,
                               trust_env=provider != LOCAL_PROVIDER)
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="The AI request timed out. Try again.")
@@ -255,6 +268,9 @@ def provider_response(provider, credentials, model, instructions, messages, sess
         result = response.json()
         if provider == "anthropic":
             answer = "\n".join(item.get("text", "") for item in result.get("content", []) if item.get("type") == "text")
+        elif provider == LOCAL_PROVIDER and (credentials.get("runtime") == "ollama"
+                                                or urlsplit(credentials["api_base"]).port == 11434):
+            answer = result["message"]["content"]
         elif provider in {"opencode", LOCAL_PROVIDER}:
             answer = result["choices"][0]["message"]["content"]
         else:

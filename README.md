@@ -39,13 +39,4 @@ Read it online: https://sumukhak.github.io/postgres-event-driven-for-android-dev
 
 ## Developer Studio AI assistant experiment
 
-This is an exploratory comparison of the playground assistant using five fixed PostgreSQL lesson prompts. Latency is the full time from submitting a prompt to receiving the complete answer. Each model received one warm-up request; scored latency below excludes that request. The assistant currently times out provider requests after 45 seconds. Each answer is scored out of 5: correctness (0–2), usefulness of the explanation (0–2), and avoiding unsupported claims (0–1).
-
-| Round | Model | Mean answer latency | Score | Result |
-| --- | --- | ---: | ---: | --- |
-| 1 | Qwen2.5 7B Instruct (`qwen2.5:7b-instruct`) | 37.9 s | 2/25 | 3/5 requests timed out. Both completed SQL suggestions used table or column names absent from the course schema. |
-| 2 | Gemma 3 12B (`gemma3:12b`) | 45.5 s | 0/25 | 5/5 requests timed out. Model removed after the round, as requested. |
-| 3 | Qwen3 14B (`qwen3:14b`) | 45.6 s | 0/25 | 5/5 requests timed out. Model remains installed locally. |
-| 4 | ChatGPT plan | Pending | Pending | Local sign-in and account consent are still in progress. |
-
-The larger local models did not return usable answers within the playground's current timeout on this laptop. Their answer accuracy therefore could not be scored; these results do not establish that they hallucinate more. The detailed prompt set and per-round notes are in [`tasks/local-model-evaluation.md`](tasks/local-model-evaluation.md).
+The initial comparison exposed a playground timeout/configuration bug, so those timeout observations are not counted as model scores. After extending local request handling and disabling Qwen3's default Ollama thinking mode, all five prompts completed for both retained local models. Accuracy is the priority: Qwen3 14B scored 16/25 versus Qwen2.5 7B at 10/25, while ChatGPT scored 22/25. The 14B model is the local candidate to validate on better hardware; latency on this 4 GB GPU / 16 GB RAM laptop should not outweigh answer quality. See the [full prompts, per-prompt latencies, and scoring notes](tasks/local-model-evaluation.md).

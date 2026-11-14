@@ -1,30 +1,36 @@
-# Developer Studio local model experiment
+# Developer Studio AI evaluation
 
-Compare response time, PostgreSQL correctness, explanation quality, and unsupported claims through the Developer Studio assistant endpoint. Use the same five lesson tasks and settings for each model; report wall-clock time from submit to complete answer, not model-internal token time. One warm-up call per model is excluded from the five scored prompts.
+Five fixed PostgreSQL prompts were sent through the Developer Studio assistant endpoint. Each model received one warm-up request, excluded from mean latency. Scores are exploratory: correctness (0–2), lesson-level explanation (0–2), and avoiding unsupported claims (0–1), for 25 total. A timeout is an application failure and is not scored as a model answer.
 
-## Rounds
+## What changed after the first run
 
-- [x] **R1 · Qwen2.5 7B Instruct** (`qwen2.5:7b-instruct`, already installed) — completed through the Developer Studio assistant endpoint. Warm-up: 45.3 s and timed out. Five scored answers averaged 37.9 s; three timed out. The two completed SQL answers invented table/column names and were not runnable. Preliminary score: 2/25 (both got one explanation point; zero correctness and no-unsupported-claims points).
-- [x] **R2 · Gemma 3 12B** (`gemma3:12b`, removed after measurement) — warm-up timed out at 45.3 s; all five scored prompts timed out between 45.4 and 45.7 s. No answer content was available to score (0/25). The playground assistant’s 45 s provider timeout made this model unusable on this laptop in this run.
-- [x] **R3 · Qwen3 14B** (`qwen3:14b`, kept installed) — warm-up timed out at 45.3 s; all five scored prompts timed out between 45.5 and 45.6 s. No answer content was available to score (0/25). The model is installed and remains on the laptop.
-- [ ] **R4 · ChatGPT account** (complete local ChatGPT sign-in and consent, then run the same prompts)
+The initial local-model run used a 45-second request timeout and reported several timeouts as if they were usable model results. That was invalid. The app now allows up to 180 seconds for a local response, identifies Ollama endpoints, and routes Ollama chat through its native API with Qwen3 thinking disabled. The general OpenAI-compatible route remains in use for other local servers. The UI also tells learners their progress is safe and offers retry/static help after an AI request fails.
 
-## Fixed prompts and scoring
+Qwen3's initial timeouts were caused by the Ollama route not disabling its default thinking mode, as well as the app's short timeout. Qwen3 14B then completed all five prompts with the fixed route. The first Gemma 3 12B round also timed out under the old setup; Gemma was removed as requested and was not reinstalled, so its accuracy/performance after the fix is unknown. Those first-run timeouts are retained only as a record of the product bug, not as model scores.
 
-1. Filter active products under 5 and return name and price, highest price first.
-2. Join customers to orders and return customer name with order count.
-3. Increment only the Samosa stock and return the changed name and stock.
-4. Explain why `EXPLAIN SELECT * FROM products WHERE category = 'Tea'` may use a sequential scan on the small course table, and whether adding an index is automatically faster.
-5. Explain how a transactional outbox prevents an order from committing without a durable event record.
+## Corrected runs
 
-Score each answer 0–2 for correctness, 0–2 for useful lesson-level explanation, and 0–1 for avoiding unsupported claims (5 points total). Record full-answer latency and any timeout/error. This is a small exploratory comparison, not a statistical benchmark.
+| Model | Warm-up | Mean scored latency | Answers completed | Score | Notes |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Qwen2.5 7B Instruct (`qwen2.5:7b-instruct`) | 2.6 s | 37.1 s | 5/5 | 10/25 | Incorrect/invented schema in prompts 1–3; prompt 4 was useful but truncated; outbox answer misdescribed the transaction boundary. |
+| Qwen3 14B (`qwen3:14b`) | 4.3 s | 59.2 s | 5/5 | 16/25 | Better explanations on prompts 4–5; schema mismatches in prompts 1–3. Model remains installed. |
+| ChatGPT plan (`gpt-6.1-sol`) | 5.6 s | 9.2 s | 5/5 | 22/25 | One incorrect `active` column; the other four answers matched the course schema and concepts. Connected locally using the user's ChatGPT plan after consent. |
+| Gemma 3 12B (`gemma3:12b`) | — | — | — | — | Removed after the original run as requested; no post-fix run. |
 
-## Results
+### Corrected run latency by prompt
 
-| Round | Model | Mean answer latency | Score / 25 | Unsupported claims | Notes |
-| --- | --- | ---: | ---: | ---: | --- |
-| R1 | Qwen2.5 7B Instruct | 37.9 s | 2/25 | 2 answers | 3/5 timeouts; both completed SQL suggestions used nonexistent schema names. |
-| R2 | Gemma 3 12B | 45.5 s | 0/25 | — | 5/5 timeouts; no usable answer. Removed after round. |
-| R3 | Qwen3 14B | 45.6 s | 0/25 | — | 5/5 timeouts; model kept installed. |
-| R4 | — | — | — | — | — |
+| Prompt | Qwen2.5 7B | Qwen3 14B | ChatGPT plan |
+| --- | ---: | ---: | ---: |
+| Filter/sort active products | 23.524 s | 33.059 s | 5.670 s |
+| Join customers and count orders | 30.716 s | 67.330 s | 7.705 s |
+| Increment Samosa stock | 15.360 s | 42.923 s | 8.489 s |
+| Explain sequential scan/index choice | 68.753 s | 88.571 s | 11.941 s |
+| Explain transactional outbox | 47.254 s | 64.304 s | 12.006 s |
 
+Scores are based on review against the course schema in `learning_app/static/seed.sql` and lesson material. The 7B score by prompt was 2, 1, 2, 4, 1; Qwen3 14B was 2, 2, 2, 5, 5; ChatGPT was 2, 5, 5, 5, 5. The 7B index explanation was cut off by the 500-token answer cap, which limited its usefulness.
+
+## Recommendation
+
+Prioritize answer accuracy over latency. Of the local models actually retested, Qwen3 14B is the stronger candidate (16/25 versus 10/25 for Qwen2.5 7B), though both made repeated schema mistakes and neither should be treated as a reliable SQL authority yet. Validate the 14B model on better hardware before choosing a local default; its 59-second result on this laptop reflects the current hardware and is not a reason by itself to prefer the less accurate 7B model. The ChatGPT plan scored highest in this small sample (22/25). Include course schema context in every AI prompt and keep generated SQL reviewable. The 4 GB GPU and 16 GB RAM limit local inference speed and model headroom, not the accuracy-first selection criterion.
+
+This is a five-prompt, one-session comparison, not a statistically controlled benchmark. Latency varies with model load, machine state, and provider service conditions. No timeout from the pre-fix run is used to claim lower model accuracy.
