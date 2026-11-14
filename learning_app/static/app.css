@@ -102,6 +102,7 @@ body { min-height: 100vh; background: var(--app-bg); color: var(--app-text); }
 .provider-option[open] > summary::after { content: "−"; }
 .provider-controls { display: grid; gap: 7px; padding: 0 10px 10px; }
 .provider-controls p { margin: 0; color: #8998a2; font-size: 9px; line-height: 1.5; }
+.local-endpoint-detail:not([hidden]) { padding: 7px 8px; border: 1px solid var(--app-line); border-radius: 5px; background: #0c1217; color: #aebbc3; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; }
 .provider-controls form { display: grid; gap: 7px; }
 .provider-option label { color: #b6c3cb; font-size: 9px; font-weight: 600; }
 .provider-option input { width: 100%; min-height: 31px; padding: 6px 8px; border: 1px solid #33424c; border-radius: 5px; outline: 0; background: #0c1217; color: var(--app-text); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 10px; }

@@ -25,6 +25,7 @@ const accountStatus = document.querySelector("#account-status");
 const accountForm = document.querySelector("#account-form");
 const providerCard = document.querySelector("#provider-card");
 const providerNotice = document.querySelector("#provider-notice");
+const localProviderForm = document.querySelector("#local-provider-form");
 const assistantProvider = document.querySelector("#assistant-provider");
 const assistantModel = document.querySelector("#assistant-model");
 const assistantForm = document.querySelector("#assistant-form");
@@ -139,6 +140,13 @@ async function loadProviders() {
         ? connection.plan_enabled ? "Reconnect ChatGPT" : "Enable ChatGPT plan use"
         : "Continue with ChatGPT";
       document.querySelector("#chatgpt-usage").hidden = !connection.plan_enabled;
+    } else if (connection.provider === "local") {
+      state.textContent = connection.connected ? "Connected" : "Not connected";
+      const endpoint = document.querySelector("#local-endpoint-detail");
+      endpoint.textContent = connection.connected ? `Endpoint · ${connection.api_base}` : "";
+      endpoint.hidden = !connection.connected;
+      localProviderForm.elements.base_url.value = connection.api_base ?? "";
+      localProviderForm.querySelector("button[type=submit]").textContent = connection.connected ? "Replace endpoint" : "Connect endpoint";
     } else {
       state.textContent = connection.connected ? "Connected · encrypted on this server" : "Not connected";
       const form = document.querySelector(`.provider-key-form[data-provider="${connection.provider}"]`);
@@ -163,7 +171,7 @@ function setAssistantProviders(connections) {
   const selected = available.some(item => item.provider === assistantProvider.value) ? assistantProvider.value : "";
   assistantProvider.replaceChildren(new Option("Choose a connected provider", ""));
   for (const item of available) assistantProvider.add(new Option(
-    item.provider === "chatgpt" ? "ChatGPT plan" : ({openai: "OpenAI API", anthropic: "Claude API", opencode: "OpenCode Console"})[item.provider], item.provider,
+    item.provider === "chatgpt" ? "ChatGPT plan" : ({openai: "OpenAI API", anthropic: "Claude API", opencode: "OpenCode Console", local: "Local model"})[item.provider], item.provider,
   ));
   assistantProvider.value = selected;
   assistantProvider.disabled = available.length === 0;
@@ -318,6 +326,35 @@ document.querySelectorAll(".provider-key-form").forEach(form => form.addEventLis
     button.disabled = false;
   }
 }));
+
+localProviderForm.addEventListener("submit", async event => {
+  event.preventDefault();
+  const state = document.querySelector("#local-state");
+  const button = localProviderForm.querySelector("button[type=submit]");
+  button.disabled = true;
+  state.textContent = "Checking local model server…";
+  state.dataset.kind = "";
+  try {
+    const values = new FormData(localProviderForm);
+    const response = await fetch("/api/providers/local", {
+      method: "POST",
+      headers: {"content-type": "application/json", "x-csrf-token": csrfToken},
+      body: JSON.stringify({base_url: values.get("base_url"), api_key: values.get("api_key")}),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail ?? "The local model server could not be connected.");
+    localProviderForm.elements.api_key.value = "";
+    state.textContent = "Connected · model server ready";
+    state.dataset.kind = "success";
+    await loadProviders();
+    providerCard.querySelector("details").open = true;
+  } catch (error) {
+    state.textContent = error.message;
+    state.dataset.kind = "error";
+  } finally {
+    button.disabled = false;
+  }
+});
 
 document.querySelector("#connect-chatgpt").addEventListener("click", async event => {
   const button = event.currentTarget;

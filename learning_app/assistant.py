@@ -98,7 +98,7 @@ def model_catalog(provider, request, user_id):
         url, headers = f"{base}/v1/models", {
             "Authorization": f"Bearer {credentials['api_key']}"}
     try:
-        response = httpx.get(url, headers=headers, timeout=10)
+        response = httpx.get(url, headers=headers, timeout=10, trust_env=provider != LOCAL_PROVIDER)
     except httpx.HTTPError:
         raise HTTPException(status_code=502, detail="The model list is unavailable. Try again.")
     if response.status_code != 200:
@@ -243,7 +243,8 @@ def provider_response(provider, credentials, model, instructions, messages, sess
         body = {"model": model, "messages": [{"role": "system", "content": instructions}, *messages],
                 "max_tokens": 500}
     try:
-        response = httpx.post(url, headers=headers, json=body, timeout=45)
+        response = httpx.post(url, headers=headers, json=body, timeout=45,
+                              trust_env=provider != LOCAL_PROVIDER)
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="The AI request timed out. Try again.")
     except httpx.HTTPError:

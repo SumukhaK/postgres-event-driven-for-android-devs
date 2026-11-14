@@ -125,6 +125,7 @@ def test_local_model_endpoint_is_probed_and_saved_encrypted(client, monkeypatch)
     assert calls[0][0] == f"{endpoint}/models"
     assert calls[0][1]["headers"]["Authorization"] == f"Bearer {key}"
     assert calls[0][1]["follow_redirects"] is False
+    assert calls[0][1]["trust_env"] is False
     assert providers.load_credentials(1, "local") == {"api_base": endpoint, "api_key": key}
     with sqlite3.connect(db_path) as db:
         ciphertext = db.execute("SELECT encrypted_credentials FROM provider_connections WHERE provider='local'").fetchone()[0]
@@ -341,6 +342,8 @@ def test_local_assistant_discovers_models_and_sends_contextual_chat_completion(c
     assert response.json() == {"answer": "A join connects related rows."}
     assert calls[0][0:2] == ("get", f"{base}/models")
     assert calls[1][0:2] == ("post", f"{base}/chat/completions")
+    assert calls[0][2]["trust_env"] is False
+    assert calls[1][2]["trust_env"] is False
     assert calls[1][2]["headers"].get("Authorization") == (f"Bearer {key}" if key else None)
     body = calls[1][2]["json"]
     assert body["model"] == "llama3.1:8b"

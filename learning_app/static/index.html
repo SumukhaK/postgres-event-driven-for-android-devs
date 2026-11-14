@@ -186,6 +186,14 @@ ORDER BY name;</textarea>
                       <button class="provider-disconnect" type="button" data-disconnect="opencode" hidden>Disconnect</button>
                     </div>
                   </details>
+                  <details class="provider-option">
+                    <summary><strong>Local model</strong><span class="provider-state" id="local-state" role="status">Not connected</span></summary>
+                    <div class="provider-controls"><p>Connect Ollama, vLLM, or another OpenAI-compatible server on this device. Use <code>127.0.0.1</code> for a direct run or <code>host.docker.internal</code> with Docker Compose. Any API key is encrypted per account.</p>
+                      <p id="local-endpoint-detail" class="local-endpoint-detail" hidden></p>
+                      <form id="local-provider-form"><label for="local-base-url">OpenAI-compatible base URL</label><input id="local-base-url" name="base_url" type="url" inputmode="url" autocomplete="url" maxlength="512" placeholder="http://127.0.0.1:11434/v1" required><label for="local-api-key">API key <span>(optional; blank removes a saved key)</span></label><input id="local-api-key" name="api_key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="2048"><button class="button button-quiet" type="submit">Connect endpoint</button></form>
+                      <button class="provider-disconnect" type="button" data-disconnect="local" hidden>Disconnect</button>
+                    </div>
+                  </details>
                 </div>
               </details>
             </section>

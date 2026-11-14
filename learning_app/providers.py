@@ -194,7 +194,8 @@ def validate_local_model_endpoint(base_url, api_key):
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
     try:
-        response = httpx.get(f"{base_url}/models", headers=headers, timeout=10, follow_redirects=False)
+        response = httpx.get(f"{base_url}/models", headers=headers, timeout=10,
+                             follow_redirects=False, trust_env=False)
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="The local model server did not respond in time.")
     except httpx.HTTPError:

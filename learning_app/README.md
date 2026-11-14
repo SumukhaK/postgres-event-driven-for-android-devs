@@ -22,6 +22,19 @@ docker compose ps
 
 Open `http://localhost:8000/`. Set `LEARNING_PORT` in `.env` to use another host port. View logs with `docker compose logs -f app`; stop the app with `docker compose down`. Its SQLite database lives in the persistent `learning-data` volume at `/data/learning.sqlite3`.
 
+## Connect a local model
+
+Sign in, open **AI connections → Local model**, and enter the server's OpenAI-compatible base URL. The server must provide `/v1/models` and `/v1/chat/completions`. An API key is optional and, when supplied, is encrypted per account. Replacing an endpoint with the key field blank removes its saved key.
+
+With Docker Compose, use the host gateway name so the app container can reach a model server on your machine:
+
+| Server | Base URL in Developer Studio |
+| --- | --- |
+| Ollama | `http://host.docker.internal:11434/v1` |
+| vLLM | `http://host.docker.internal:8000/v1` |
+
+The Compose service maps `host.docker.internal` to the host gateway (Docker Desktop provides this name automatically). For a direct Uvicorn run, use `http://127.0.0.1:11434/v1` for Ollama or `http://127.0.0.1:8000/v1` for vLLM. Other OpenAI-compatible local servers work with their own port and `/v1` base path. The app accepts loopback addresses and `host.docker.internal`; it rejects LAN or public hosts.
+
 ## Back up, restore, or reset
 
 Back up the live SQLite database and copy it to the repository folder:
