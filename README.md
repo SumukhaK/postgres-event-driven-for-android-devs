@@ -40,12 +40,15 @@ Read it online: https://sumukhak.github.io/postgres-event-driven-for-android-dev
 
 ## Developer Studio AI assistant experiment
 
-The initial comparison exposed a playground timeout/configuration bug, so those timeout observations are not counted as model scores. After extending local request handling and disabling Qwen3's default Ollama thinking mode, all five prompts completed for both retained local models. Scores are out of 25: correctness, explanation usefulness, and avoiding unsupported claims.
+The initial comparison exposed a playground timeout/configuration bug; those timeout observations are not counted as model scores. A follow-up code trial adds the sandbox's relevant table/column schema and verified exercise references to assistant context, plus concise-answer and safe-SQL instructions. Scores are out of 25: correctness, explanation usefulness, and avoiding unsupported claims.
 
-| Model | Mean answer latency | Completed | Score | Summary |
-| --- | ---: | ---: | ---: | --- |
-| Qwen2.5 7B Instruct (`qwen2.5:7b-instruct`) | 37.1 s | 5/5 | 10/25 | Frequent schema mistakes; outbox answer misstated the transaction boundary. |
-| Qwen3 14B (`qwen3:14b`) | 59.2 s | 5/5 | 16/25 | Better explanations, but schema mistakes remained. Stronger local candidate to validate on better hardware. |
-| ChatGPT plan (`gpt-6.1-sol`) | 9.2 s | 5/5 | 22/25 | One incorrect column name; other answers matched the lesson schema and concepts. |
+| Model | Run | Mean answer latency | Completed | Score | Summary |
+| --- | --- | ---: | ---: | ---: | --- |
+| Qwen2.5 7B Instruct (`qwen2.5:7b-instruct`) | Baseline | 37.1 s | 5/5 | 10/25 | Frequent schema mistakes; outbox answer misstated the transaction boundary. |
+| Qwen2.5 7B Instruct (`qwen2.5:7b-instruct`) | Schema/reference context trial | 9.6 s | 5/5 | 25/25 | All five answers matched the exercise schema and expected concepts. |
+| Qwen3 14B (`qwen3:14b`) | Baseline | 59.2 s | 5/5 | 16/25 | Better explanations, but schema mistakes remained. |
+| Qwen3 14B (`qwen3:14b`) | Schema/reference context trial | 29.2 s | 5/5 | 25/25 | All five answers matched the exercise schema and expected concepts. |
+| ChatGPT plan (`gpt-6.1-sol`) | Previous run | 9.2 s | 5/5 | 22/25 | One incorrect column name; other answers matched the lesson schema and concepts. |
+| ChatGPT plan (`gpt-6.1-sol`) | Optimization retest | Pending | — | — | Waiting for the account authorization in Firefox. |
 
-Accuracy is the priority: latency on this 4 GB GPU / 16 GB RAM laptop should not outweigh answer quality. See the [full prompts, per-prompt latencies, and scoring notes](tasks/local-model-evaluation.md). This is an exploratory five-prompt comparison, not a statistically controlled benchmark.
+In this small trial, Qwen2.5 7B improved by 15 points and averaged 27.5 seconds faster; Qwen3 14B improved by 9 points and averaged 30.0 seconds faster. These are not controlled model-only comparisons: the optimized prompt includes verified exercise references, the original literal prompts were not retained and were reconstructed from exercise descriptions, and machine load differed between runs. The GPT optimization retest is still pending, so this is not a final acceptance decision. Accuracy remains the priority on this 4 GB GPU / 16 GB RAM laptop. See the [full prompts, per-prompt latencies, and scoring notes](tasks/local-model-evaluation.md).

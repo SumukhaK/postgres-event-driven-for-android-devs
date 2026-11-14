@@ -350,6 +350,13 @@ def test_assistant_lists_models_and_sends_only_selected_lesson_context(client, m
     assert sent["json"]["model"] == "gpt-test-1" and sent["json"]["store"] is False
     assert sent["json"]["instructions"].startswith("You are the PostgreSQL course tutor.")
     assert "Current activity: Connect customers to orders" in sent["json"]["instructions"]
+    assert "customers (id, name, email)" in sent["json"]["instructions"]
+    assert "orders (id, customer_id, status, total, created_at)" in sent["json"]["instructions"]
+    assert "products (" not in sent["json"]["instructions"]
+    assert "restrictive WHERE clause" in sent["json"]["instructions"]
+    assert "worker retries event delivery" in sent["json"]["instructions"]
+    assert "SELECT customers.name, count(orders.id)" in sent["json"]["instructions"]
+    assert "placed_at" not in sent["json"]["instructions"]
     assert sent["json"]["input"] == [{"role": "user", "content": "What joins these rows?"}]
 
 
@@ -406,7 +413,7 @@ def test_local_assistant_discovers_models_and_sends_contextual_chat_completion(c
     assert body["messages"][-1] == {"role": "user", "content": "Why use a join?"}
 
 
-def test_local_ollama_uses_native_chat_with_thinking_disabled(client, monkeypatch):
+def test_local_ollama_uses_native_chat_with_thinking_disabled_and_logs_safe_timing(client, monkeypatch, caplog):
     test_client, _ = client
     csrf = connect_user(test_client)
     providers.save_credentials(1, "local", {
@@ -417,23 +424,32 @@ def test_local_ollama_uses_native_chat_with_thinking_disabled(client, monkeypatc
     class Completion:
         status_code = 200
         def json(self):
-            return {"message": {"content": "SELECT retrieves rows from a database.", "thinking": ""}}
+            return {"message": {"content": "SELECT retrieves rows from a database.", "thinking": ""},
+                    "total_duration": 1_000_000, "load_duration": 200_000,
+                    "prompt_eval_duration": 300_000, "eval_duration": 400_000,
+                    "prompt_eval_count": 10, "eval_count": 12}
 
     def post(url, **kwargs):
         sent.update(url=url, **kwargs)
         return Completion()
 
     monkeypatch.setattr(assistant.httpx, "post", post)
-    response = test_client.post("/api/assistant/respond", headers={**ORIGIN, "x-csrf-token": csrf}, json={
-        "provider": "local", "model": "qwen3:14b", "lesson_slug": "03-select",
-        "action": "ask", "message": "What does SELECT do?",
-    })
+    with caplog.at_level("INFO", logger="learning_app.assistant"):
+        response = test_client.post("/api/assistant/respond", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+            "provider": "local", "model": "qwen3:14b", "lesson_slug": "03-select",
+            "action": "ask", "message": "What does SELECT do?",
+        })
 
     assert response.status_code == 200
     assert response.json() == {"answer": "SELECT retrieves rows from a database."}
     assert sent["url"] == "http://127.0.0.1:11434/api/chat"
     assert sent["json"]["think"] is False
     assert sent["json"]["stream"] is False
+    assert "Interactive SQL sandbox schema" in sent["json"]["messages"][0]["content"]
+    assert "products (id, name, category, price, stock, is_active)" in sent["json"]["messages"][0]["content"]
+    assert "assistant_ollama_timing" in caplog.text
+    assert "prompt_eval_duration" in caplog.text and "eval_count" in caplog.text
+    assert "SELECT retrieves rows" not in caplog.text and "What does SELECT do?" not in caplog.text
 
 
 @pytest.mark.parametrize("path,method", [
@@ -528,6 +544,7 @@ def test_chatgpt_refreshes_and_requires_completed_sse_event(client, monkeypatch)
     assert refreshed["inference"]["url"] == f"{providers.OPENAI_RESOURCE}/responses"
     assert refreshed["inference"]["json"]["store"] is False
     assert refreshed["inference"]["json"]["stream"] is True
+    assert "SELECT customers.name, count(orders.id)" not in refreshed["inference"]["json"]["instructions"]
     saved = providers.load_credentials(1, "chatgpt")
     assert saved["access_token"] == "fresh-access" and saved["refresh_token"] == "rotated-refresh"
 

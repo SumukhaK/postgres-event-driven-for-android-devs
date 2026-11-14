@@ -60,10 +60,10 @@ Current provider feasibility and official documentation references are recorded 
 
 ## AI assistant answer quality and latency
 
-- [ ] **T22 · Reconcile lesson and playground schemas** — document the schema expected by each lesson/activity and align source materials, interactive seed data, and tests. **Risk:** course material and the backend sample project intentionally model related but different database schemas; choose per lesson before sending schema context to AI.
-- [ ] **T23 · Add schema-grounded assistant context** — give the tutor only the current environment's relevant table/column definitions; add context assertions and regression cases for known schema mistakes.
-- [ ] **T24 · Measure assistant latency by stage** — capture privacy-preserving end-to-end and Ollama timing fields; rerun the fixed evaluation before claiming a latency gain.
+- [x] **T22 · Reconcile lesson and playground schemas** — keep the backend sample schema separate; derive assistant schema context from the active playground seed schema so lesson-specific differences are respected.
+- [x] **T23 · Add schema-grounded assistant context** — include only relevant sandbox table/column definitions and verified exercise references for ask/solution actions; hints do not expose answer references. Added regression coverage for schema and answer-key boundaries.
+- [x] **T24 · Measure assistant latency by stage** — privacy-safe Ollama request/load/prompt/generation timing and token counts are logged. The exploratory local retest completed 5/5 prompts at 9.64 s (7B) and 29.17 s (14B), both scoring 25/25; these improvements are confounded by verified reference context and changed machine load. GPT retest remains pending.
 - [ ] **T25 · Improve perceived response time** — stream incremental answers where provider routes support it; measure time to first visible text separately from completion time.
-- [ ] **T26 · Tune output/residency with evidence** — test concise nudge/hint budgets and optional Ollama model residency against quality, truncation, memory, and latency metrics. No 5–10 second reduction is guaranteed until profiling identifies an actionable bottleneck.
+- [ ] **T26 · Tune output/residency with evidence** — concise tutor instructions are included in the trial; optional Ollama model residency remains untested. Keep the verified reference behavior only if GPT comparison supports it.
 
 Research and the implementation order are in [`ai-assistant-quality-and-latency.md`](ai-assistant-quality-and-latency.md).
