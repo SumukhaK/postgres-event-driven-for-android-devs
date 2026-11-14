@@ -1,0 +1,10 @@
+.git
+.env
+.env.*
+!.env.example
+node_modules
+learning_app/dist
+data
+screenshots
+__pycache__
+.pytest_cache

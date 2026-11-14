@@ -8,6 +8,8 @@ The course site uses a dark, code-first workspace with lessons, runnable example
 
 ![Developer Studio learning workspace](screenshots/developer-studio.png)
 
+GitHub Pages hosts the static reading course. For account-backed progress, the PostgreSQL sandbox, and optional AI help, run the full-stack app using the [Developer Studio setup guide](learning_app/README.md).
+
 Read it online: https://sumukhak.github.io/postgres-event-driven-for-android-devs/ (after GitHub Pages is switched to "GitHub Actions").
 
 - Chapters are Markdown files in `src/`. `python tools/build.py` turns them into the site in `site/`.

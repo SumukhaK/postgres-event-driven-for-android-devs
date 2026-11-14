@@ -1,17 +1,68 @@
-# Postgres Lab app
+# Postgres Lab · Developer Studio
 
-This is the full-stack learning app, separate from the ChaiPoint order API in `project/app/`.
+The full-stack learning app serves lessons, accounts and progress, the browser PostgreSQL sandbox, and optional AI help. It is separate from the ChaiPoint order API in `project/app/`. GitHub Pages serves only static course pages; it does not provide accounts, progress sync, or AI.
 
-From the repository root, install dependencies, build the course pages and frontend bundle, and start the app:
+## Run with Docker Compose
+
+From the repository root, create a local environment file and generate a Fernet key:
+
+```powershell
+Copy-Item .env.example .env
+python -c "import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())"
+```
+
+Paste the generated value after `LEARNING_CREDENTIAL_KEY=` in `.env`. Keep that key safe and stable: changing it makes saved provider credentials unreadable. `.env` is ignored by Git.
+
+Build and start the app:
+
+```powershell
+docker compose up --build -d
+docker compose ps
+```
+
+Open `http://localhost:8000/`. Set `LEARNING_PORT` in `.env` to use another host port. View logs with `docker compose logs -f app`; stop the app with `docker compose down`. Its SQLite database lives in the persistent `learning-data` volume at `/data/learning.sqlite3`.
+
+## Back up, restore, or reset
+
+Back up the live SQLite database and copy it to the repository folder:
+
+```powershell
+docker compose exec -T app python -c "import sqlite3; s=sqlite3.connect('/data/learning.sqlite3'); b=sqlite3.connect('/data/backup.sqlite3'); s.backup(b); b.close(); s.close()"
+docker compose cp app:/data/backup.sqlite3 ./learning.sqlite3.backup
+docker compose exec -T app rm /data/backup.sqlite3
+```
+
+Keep the backup file and `LEARNING_CREDENTIAL_KEY` together in a secure location. To restore, stop the app, copy the backup over the database, and start it again:
+
+```powershell
+docker compose stop app
+docker compose cp ./learning.sqlite3.backup app:/data/learning.sqlite3
+docker compose start app
+```
+
+To erase all local accounts, progress, and provider connections, run `docker compose down --volumes`. This deletes the database volume; back it up first if you need to keep anything.
+
+## Run directly on your machine
+
+This path supports ChatGPT plan sign-in, which requires a loopback app and browser connection. Install dependencies and build both course and app assets from the repository root:
 
 ```powershell
 python -m pip install -r project/requirements.txt
 npm ci
-npm run build
 python tools/build.py
-python -m uvicorn learning_app.main:app --reload
+npm run build
+$env:LEARNING_CREDENTIAL_KEY = "<generated Fernet key>"
+$env:LEARNING_DB_PATH = "data/learning.sqlite3"
+python -m uvicorn learning_app.main:app --host 127.0.0.1 --port 8000
 ```
 
-Open `http://127.0.0.1:8000/`. The lesson catalog is available at `/api/course` and the health check at `/api/health`. Built lessons are also served under `/course/`.
+Open `http://127.0.0.1:8000/`. The health check is `/api/health`; built lessons are served under `/course/`.
+
+## Backend hosting notes
+
+- Keep the app on one instance with a persistent disk mounted at `/data`; this app uses SQLite and is not configured for horizontal scaling.
+- For a public host, terminate HTTPS at a trusted reverse proxy and set `LEARNING_COOKIE_SECURE=1`. Keep `.env`, the encryption key, and SQLite backups private.
+- ChatGPT plan sign-in is loopback-only. The Docker bridge connection is not loopback to the app, so use direct local Uvicorn for that provider. API-key provider connections work with Docker Compose.
+- A hosted backend is separate from GitHub Pages. This repository does not include a deployed backend host or public deployment configuration.
 
 Account storage, interactive exercises, and AI provider connections are tracked in [`../tasks/todo.md`](../tasks/todo.md).
