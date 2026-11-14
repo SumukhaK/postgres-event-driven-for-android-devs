@@ -8,7 +8,8 @@ import secrets
 import threading
 import time
 import uuid
-from urllib.parse import parse_qs, urlencode, urljoin, urlsplit
+import re
+from urllib.parse import parse_qs, urlencode, urljoin, urlsplit, urlunsplit
 
 import httpx
 from cryptography.exceptions import InvalidSignature
@@ -24,7 +25,9 @@ from learning_app.storage import database
 
 router = APIRouter()
 API_PROVIDERS = {"openai", "anthropic", "opencode"}
-ALL_PROVIDERS = API_PROVIDERS | {"chatgpt"}
+LOCAL_PROVIDER = "local"
+ALL_PROVIDERS = API_PROVIDERS | {"chatgpt", LOCAL_PROVIDER}
+LOCAL_MODEL_HOSTS = {"localhost", "host.docker.internal"}
 OPENAI_ISSUER = "https://auth.openai.com"
 OPENAI_AUTHORIZE = f"{OPENAI_ISSUER}/api/accounts/authorize"
 OPENAI_TOKEN = f"{OPENAI_ISSUER}/api/accounts/oauth/token"
@@ -38,6 +41,11 @@ _callback_server = None
 
 class ApiKeyPayload(BaseModel):
     api_key: str = Field(min_length=8, max_length=2048)
+
+
+class LocalEndpointPayload(BaseModel):
+    base_url: str = Field(min_length=8, max_length=512)
+    api_key: str = Field(default="", max_length=2048)
 
 
 def encryption_ready():
@@ -157,6 +165,53 @@ def validate_api_key(provider, api_key):
         raise HTTPException(status_code=502, detail="The provider returned an unexpected response.")
 
 
+def validate_local_base_url(value):
+    try:
+        parsed = urlsplit(value.strip())
+        parsed.port
+    except (AttributeError, ValueError):
+        raise HTTPException(status_code=422, detail="Enter a valid local model URL.")
+    host = (parsed.hostname or "").lower().rstrip(".")
+    try:
+        is_loopback = ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        is_loopback = False
+    if (parsed.scheme.lower() not in {"http", "https"} or not host
+            or (host not in LOCAL_MODEL_HOSTS and not is_loopback)
+            or parsed.username is not None or parsed.password is not None
+            or parsed.query or parsed.fragment):
+        raise HTTPException(status_code=422, detail="Use a loopback or host.docker.internal URL without credentials, query, or fragment.")
+    path = parsed.path.rstrip("/")
+    segments = path.strip("/").split("/") if path else []
+    if any(segment in {".", ".."} or not re.fullmatch(r"[A-Za-z0-9._~-]+", segment) for segment in segments):
+        raise HTTPException(status_code=422, detail="The local model URL path is invalid.")
+    return urlunsplit((parsed.scheme.lower(), parsed.netloc, path, "", "")).rstrip("/")
+
+
+def validate_local_model_endpoint(base_url, api_key):
+    base_url = validate_local_base_url(base_url)
+    headers = {"accept": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    try:
+        response = httpx.get(f"{base_url}/models", headers=headers, timeout=10, follow_redirects=False)
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="The local model server did not respond in time.")
+    except httpx.HTTPError:
+        raise HTTPException(status_code=502, detail="The local model server could not be reached.")
+    if response.status_code in (401, 403):
+        raise HTTPException(status_code=422, detail="The local model server rejected this API key.")
+    if response.status_code != 200:
+        raise HTTPException(status_code=502, detail="The local server did not return an OpenAI-compatible model list.")
+    try:
+        models = response.json().get("data")
+    except (ValueError, AttributeError):
+        models = None
+    if not isinstance(models, list):
+        raise HTTPException(status_code=502, detail="The local server returned an unexpected model list.")
+    return base_url
+
+
 def _loopback(value):
     try:
         return ipaddress.ip_address(value).is_loopback
@@ -168,6 +223,10 @@ def is_local_runtime(request):
     host = urlsplit(str(request.base_url)).hostname or ""
     client = request.client.host if request.client else ""
     return _loopback(host) and _loopback(client)
+
+
+def is_local_app_url(request):
+    return _loopback(urlsplit(str(request.base_url)).hostname or "")
 
 
 def host_id():
@@ -359,10 +418,29 @@ def provider_status(request: Request):
         "connections": [
             {"provider": provider, "connected": provider in saved,
              "email": saved.get(provider, {}).get("email"),
-             "plan_enabled": bool(saved.get(provider, {}).get("plan_enabled")) if provider == "chatgpt" else None}
-            for provider in ("chatgpt", "openai", "anthropic", "opencode")
+             "plan_enabled": bool(saved.get(provider, {}).get("plan_enabled")) if provider == "chatgpt" else None,
+             **({"api_base": saved[provider].get("api_base")} if provider == LOCAL_PROVIDER and provider in saved else {})}
+            for provider in ("chatgpt", "openai", "anthropic", "opencode", LOCAL_PROVIDER)
         ],
     }
+
+
+@router.post("/local")
+def connect_local_model(payload: LocalEndpointPayload, request: Request):
+    session = current_session(request)
+    verify_csrf(request, session)
+    if not is_local_app_url(request):
+        raise HTTPException(status_code=403, detail="Local models can only be connected from the local app.")
+    if not encryption_ready():
+        raise HTTPException(status_code=503, detail="Secure credential storage is not configured on this server.")
+    api_key = payload.api_key.strip()
+    base_url = validate_local_model_endpoint(payload.base_url, api_key)
+    credentials = {"api_base": base_url}
+    if api_key:
+        credentials["api_key"] = api_key
+    save_credentials(session.user_id, LOCAL_PROVIDER, credentials,
+                     {"credential_type": "openai_compatible", "api_base": base_url})
+    return {"provider": LOCAL_PROVIDER, "connected": True}
 
 
 @router.post("/{provider}/key")

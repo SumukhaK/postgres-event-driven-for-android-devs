@@ -99,6 +99,90 @@ def test_missing_encryption_key_or_rejected_provider_key_is_not_saved(client, mo
         assert db.execute("SELECT count(*) FROM provider_connections").fetchone()[0] == 0
 
 
+def test_local_model_endpoint_is_probed_and_saved_encrypted(client, monkeypatch):
+    test_client, db_path = client
+    csrf = connect_user(test_client)
+    endpoint = "http://host.docker.internal:11434/v1"
+    key = "local-model-test-key-123"
+    calls = []
+
+    class Models:
+        status_code = 200
+
+        def json(self):
+            return {"data": [{"id": "llama3.1:8b"}]}
+
+    def get(url, **kwargs):
+        calls.append((url, kwargs))
+        return Models()
+
+    monkeypatch.setattr(providers.httpx, "get", get)
+    response = test_client.post("/api/providers/local", headers={**ORIGIN, "x-csrf-token": csrf},
+                                json={"base_url": endpoint, "api_key": key})
+
+    assert response.status_code == 200
+    assert response.json() == {"provider": "local", "connected": True}
+    assert calls[0][0] == f"{endpoint}/models"
+    assert calls[0][1]["headers"]["Authorization"] == f"Bearer {key}"
+    assert calls[0][1]["follow_redirects"] is False
+    assert providers.load_credentials(1, "local") == {"api_base": endpoint, "api_key": key}
+    with sqlite3.connect(db_path) as db:
+        ciphertext = db.execute("SELECT encrypted_credentials FROM provider_connections WHERE provider='local'").fetchone()[0]
+    assert key not in ciphertext
+    connection = next(item for item in test_client.get("/api/providers").json()["connections"] if item["provider"] == "local")
+    assert connection == {"provider": "local", "connected": True, "email": None, "plan_enabled": None, "api_base": endpoint}
+    disconnected = test_client.delete("/api/providers/local", headers={**ORIGIN, "x-csrf-token": csrf})
+    assert disconnected.json() == {"provider": "local", "connected": False}
+    assert providers.load_credentials(1, "local") is None
+
+
+@pytest.mark.parametrize("base_url", [
+    "http://127.0.0.1:11434/v1",
+    "http://localhost:11434/v1",
+    "http://[::1]:11434/v1",
+])
+def test_local_model_base_url_allows_loopback(base_url):
+    assert providers.validate_local_base_url(base_url) == base_url
+
+
+@pytest.mark.parametrize("base_url", [
+    "https://example.com/v1",
+    "http://192.168.1.20:11434/v1",
+    "http://169.254.169.254/latest/meta-data/",
+    "http://user@127.0.0.1:11434/v1",
+    "http://127.0.0.1:11434/v1?token=value",
+])
+def test_local_model_connection_rejects_nonlocal_or_malformed_urls(client, monkeypatch, base_url):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    calls = []
+    monkeypatch.setattr(providers.httpx, "get", lambda *args, **kwargs: calls.append(args[0]))
+
+    response = test_client.post("/api/providers/local", headers={**ORIGIN, "x-csrf-token": csrf},
+                                json={"base_url": base_url})
+
+    assert response.status_code == 422
+    assert calls == []
+
+
+def test_local_model_connection_is_disabled_on_remote_app_host(client, monkeypatch):
+    test_client, _ = client
+    remote = TestClient(app, base_url="https://learn.example.test", client=("203.0.113.7", 45000))
+    registered = remote.post("/api/auth/register", headers={"origin": "https://learn.example.test"}, json={
+        "email": "remote-provider@example.test", "password": PASSWORD,
+    })
+    assert registered.status_code == 201
+    calls = []
+    monkeypatch.setattr(providers.httpx, "get", lambda *args, **kwargs: calls.append(args[0]))
+
+    response = remote.post("/api/providers/local", headers={"origin": "https://learn.example.test",
+                                                             "x-csrf-token": registered.json()["csrf_token"]},
+                           json={"base_url": "http://host.docker.internal:11434/v1"})
+
+    assert response.status_code == 403
+    assert calls == []
+
+
 def test_local_chatgpt_start_creates_pkce_state_and_one_time_encrypted_connection(client, monkeypatch):
     test_client, db_path = client
     csrf = connect_user(test_client)
