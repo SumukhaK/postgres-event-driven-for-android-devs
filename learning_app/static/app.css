@@ -104,6 +104,15 @@ body { min-height: 100vh; background: var(--app-bg); color: var(--app-text); }
 .provider-controls p { margin: 0; color: #8998a2; font-size: 9px; line-height: 1.5; }
 .local-endpoint-detail:not([hidden]) { padding: 7px 8px; border: 1px solid var(--app-line); border-radius: 5px; background: #0c1217; color: #aebbc3; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; }
 .provider-controls form { display: grid; gap: 7px; }
+.chatgpt-auth-fallback { display: grid; gap: 6px; padding-top: 2px; }
+.chatgpt-auth-fallback[hidden] { display: none; }
+.chatgpt-auth-fallback > label { color: #b6c3cb; font-size: 9px; font-weight: 600; }
+.chatgpt-auth-copy-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; min-width: 0; }
+.chatgpt-auth-copy-row input { min-width: 0; overflow-x: auto; white-space: nowrap; }
+.chatgpt-auth-fallback #chatgpt-auth-copy-status { color: #8f9ea7; }
+.chatgpt-auth-fallback #chatgpt-auth-copy-status[data-kind="error"] { color: #ff9b91; }
+.chatgpt-auth-fallback #chatgpt-auth-copy-status[data-kind="success"] { color: #8fdfae; }
+@media (max-width: 390px) { .chatgpt-auth-copy-row { grid-template-columns: minmax(0, 1fr); } }
 .provider-option label { color: #b6c3cb; font-size: 9px; font-weight: 600; }
 .provider-option input { width: 100%; min-height: 31px; padding: 6px 8px; border: 1px solid #33424c; border-radius: 5px; outline: 0; background: #0c1217; color: var(--app-text); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 10px; }
 .provider-option input:focus-visible { border-color: #4d9a73; outline: 2px solid #64c68d; outline-offset: 2px; }

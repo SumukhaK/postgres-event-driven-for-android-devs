@@ -25,6 +25,9 @@ const accountStatus = document.querySelector("#account-status");
 const accountForm = document.querySelector("#account-form");
 const providerCard = document.querySelector("#provider-card");
 const providerNotice = document.querySelector("#provider-notice");
+const chatgptAuthFallback = document.querySelector("#chatgpt-auth-fallback");
+const chatgptAuthUrl = document.querySelector("#chatgpt-auth-url");
+const chatgptAuthCopyStatus = document.querySelector("#chatgpt-auth-copy-status");
 const localProviderForm = document.querySelector("#local-provider-form");
 const assistantProvider = document.querySelector("#assistant-provider");
 const assistantModel = document.querySelector("#assistant-model");
@@ -87,6 +90,9 @@ function renderAccount() {
   if (!currentUser) providerCard.querySelector("details").open = false;
   if (currentUser) document.querySelector("#account-email-display").textContent = currentUser.email;
   if (!currentUser) {
+    chatgptAuthFallback.hidden = true;
+    chatgptAuthUrl.value = "";
+    chatgptAuthCopyStatus.textContent = "";
     clearAssistantConversation();
     assistantQuestion.value = "";
     setAssistantProviders([]);
@@ -133,6 +139,11 @@ async function loadProviders() {
     const state = document.querySelector(`#${connection.provider}-state`);
     const disconnect = document.querySelector(`[data-disconnect="${connection.provider}"]`);
     if (connection.provider === "chatgpt") {
+      if (connection.connected) {
+        chatgptAuthFallback.hidden = true;
+        chatgptAuthUrl.value = "";
+        chatgptAuthCopyStatus.textContent = "";
+      }
       state.textContent = connection.connected
         ? connection.plan_enabled ? `Connected · ${connection.email ?? "ChatGPT account"} · plan use enabled` : `Connected · ${connection.email ?? "ChatGPT account"} · plan use not enabled`
         : "Not connected";
@@ -159,6 +170,9 @@ async function loadProviders() {
 
   const callbackResult = new URLSearchParams(location.search).get("chatgpt");
   if (callbackResult) {
+    chatgptAuthFallback.hidden = true;
+    chatgptAuthUrl.value = "";
+    chatgptAuthCopyStatus.textContent = "";
     providerCard.querySelector("details").open = true;
     providerNotice.textContent = callbackResult === "connected"
       ? "ChatGPT connection updated. Check the status above to confirm plan use is enabled."
@@ -360,20 +374,58 @@ localProviderForm.addEventListener("submit", async event => {
 
 document.querySelector("#connect-chatgpt").addEventListener("click", async event => {
   const button = event.currentTarget;
+  let authTab;
+  try {
+    authTab = window.open("about:blank", "_blank");
+    if (authTab) authTab.opener = null;
+  } catch {}
   button.disabled = true;
+  chatgptAuthFallback.hidden = true;
+  chatgptAuthUrl.value = "";
+  chatgptAuthCopyStatus.textContent = "";
   try {
     const response = await fetch("/api/providers/chatgpt/start", {
       method: "POST", headers: { "x-csrf-token": csrfToken },
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.detail ?? "ChatGPT sign-in could not start.");
-    location.assign(data.authorization_url);
+    chatgptAuthUrl.value = data.authorization_url;
+    chatgptAuthFallback.hidden = false;
+    chatgptAuthCopyStatus.dataset.kind = "";
+    chatgptAuthCopyStatus.textContent = authTab
+      ? "Sign-in opened in a new tab. If it did not load, copy this URL into a browser address bar."
+      : "Your browser blocked a new tab. Copy this URL into a browser address bar and press Enter.";
+    if (authTab && !authTab.closed) {
+      try { authTab.location.replace(data.authorization_url); }
+      catch { chatgptAuthCopyStatus.textContent = "If sign-in did not open, copy this URL into a browser address bar and press Enter."; }
+    }
   } catch (error) {
+    try { if (authTab && !authTab.closed) authTab.close(); } catch {}
     const state = document.querySelector("#chatgpt-state");
     state.textContent = error.message;
     state.dataset.kind = "error";
+  } finally {
     button.disabled = false;
   }
+});
+
+document.querySelector("#copy-chatgpt-auth-url").addEventListener("click", async () => {
+  chatgptAuthCopyStatus.dataset.kind = "";
+  try {
+    await navigator.clipboard.writeText(chatgptAuthUrl.value);
+    chatgptAuthCopyStatus.textContent = "Authorization URL copied. Paste it into a browser address bar.";
+    chatgptAuthCopyStatus.dataset.kind = "success";
+  } catch {
+    chatgptAuthUrl.focus();
+    chatgptAuthUrl.select();
+    chatgptAuthCopyStatus.textContent = "Copy failed. The URL is selected; press Ctrl+C to copy it.";
+    chatgptAuthCopyStatus.dataset.kind = "error";
+  }
+});
+
+window.addEventListener("focus", () => {
+  if (!currentUser || chatgptAuthFallback.hidden) return;
+  loadProviders().catch(error => { providerNotice.textContent = error.message; });
 });
 
 document.querySelectorAll("[data-disconnect]").forEach(button => button.addEventListener("click", async () => {

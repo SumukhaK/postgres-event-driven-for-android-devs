@@ -62,8 +62,9 @@ Current provider feasibility and official documentation references are recorded 
 
 - [x] **T22 · Reconcile lesson and playground schemas** — keep the backend sample schema separate; derive assistant schema context from the active playground seed schema so lesson-specific differences are respected.
 - [x] **T23 · Add schema-grounded assistant context** — include only relevant sandbox table/column definitions and verified exercise references for ask/solution actions; hints do not expose answer references. Added regression coverage for schema and answer-key boundaries.
-- [x] **T24 · Measure assistant latency by stage** — privacy-safe Ollama request/load/prompt/generation timing and token counts are logged. The exploratory local retest completed 5/5 prompts at 9.64 s (7B) and 29.17 s (14B), both scoring 25/25; these improvements are confounded by verified reference context and changed machine load. GPT retest remains pending.
+- [x] **T24 · Measure assistant latency by stage** — privacy-safe Ollama request/load/prompt/generation timing and token counts are logged. The exploratory retest completed 5/5 prompts for all three providers: 7B averaged 9.64 s, 14B 29.17 s, and GPT 4.50 s; all scored 25/25. Comparisons are confounded by verified reference context and changed machine/network conditions.
 - [ ] **T25 · Improve perceived response time** — stream incremental answers where provider routes support it; measure time to first visible text separately from completion time.
 - [ ] **T26 · Tune output/residency with evidence** — concise tutor instructions are included in the trial; optional Ollama model residency remains untested. Keep the verified reference behavior only if GPT comparison supports it.
+- [x] **T27 · Keep ChatGPT sign-in usable when browser launch fails** — open consent in a new tab while keeping the playground open; display the short-lived authorization URL with a copy button and manual-selection fallback.
 
 Research and the implementation order are in [`ai-assistant-quality-and-latency.md`](ai-assistant-quality-and-latency.md).

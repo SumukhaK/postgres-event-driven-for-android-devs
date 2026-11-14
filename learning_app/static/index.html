@@ -161,6 +161,14 @@ ORDER BY name;</textarea>
                     <summary><strong>ChatGPT plan</strong><span class="provider-state" id="chatgpt-state" role="status">Not connected</span></summary>
                     <div class="provider-controls"><p>Eligible Plus/Pro users can opt in. This connection stays on your local app.</p>
                       <button class="button button-quiet" id="connect-chatgpt" type="button" data-oai-siwc-button>Continue with ChatGPT</button>
+                      <div class="chatgpt-auth-fallback" id="chatgpt-auth-fallback" hidden>
+                        <label for="chatgpt-auth-url">Authorization URL · expires in 10 minutes</label>
+                        <div class="chatgpt-auth-copy-row">
+                          <input id="chatgpt-auth-url" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" readonly>
+                          <button class="button button-quiet" id="copy-chatgpt-auth-url" type="button">Copy URL</button>
+                        </div>
+                        <p id="chatgpt-auth-copy-status" role="status" aria-live="polite">If sign-in did not open, copy this URL into a browser address bar.</p>
+                      </div>
                       <a class="provider-manage" id="chatgpt-usage" href="https://chatgpt.com/#settings/Usage" target="_blank" rel="noreferrer" hidden>Manage ChatGPT usage ↗</a>
                       <button class="provider-disconnect" type="button" data-disconnect="chatgpt" hidden>Disconnect</button>
                     </div>
