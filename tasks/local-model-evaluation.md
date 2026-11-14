@@ -4,7 +4,7 @@ Compare response time, PostgreSQL correctness, explanation quality, and unsuppor
 
 ## Rounds
 
-- [ ] **R1 · Qwen2.5 7B Instruct** (`qwen2.5:7b-instruct`, already installed)
+- [x] **R1 · Qwen2.5 7B Instruct** (`qwen2.5:7b-instruct`, already installed) — completed through the Developer Studio assistant endpoint. Warm-up: 45.3 s and timed out. Five scored answers averaged 37.9 s; three timed out. The two completed SQL answers invented table/column names and were not runnable. Preliminary score: 2/25 (both got one explanation point; zero correctness and no-unsupported-claims points).
 - [ ] **R2 · Gemma 3 12B** (`gemma3:12b`, remove after its measurements)
 - [ ] **R3 · Qwen3 14B** (`qwen3:14b`, keep installed)
 - [ ] **R4 · ChatGPT account** (complete local ChatGPT sign-in and consent, then run the same prompts)
@@ -23,7 +23,7 @@ Score each answer 0–2 for correctness, 0–2 for useful lesson-level explanati
 
 | Round | Model | Mean answer latency | Score / 25 | Unsupported claims | Notes |
 | --- | --- | ---: | ---: | ---: | --- |
-| R1 | — | — | — | — | — |
+| R1 | Qwen2.5 7B Instruct | 37.9 s | 2/25 | 2 answers | 3/5 timeouts; both completed SQL suggestions used nonexistent schema names. |
 | R2 | — | — | — | — | — |
 | R3 | — | — | — | — | — |
 | R4 | — | — | — | — | — |
