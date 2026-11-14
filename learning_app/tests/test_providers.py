@@ -72,7 +72,12 @@ def test_api_keys_are_validated_encrypted_and_disconnectable(client, monkeypatch
         ciphertext = db.execute("SELECT encrypted_credentials FROM provider_connections WHERE provider='opencode'").fetchone()[0]
     assert key not in ciphertext
     assert decrypt(ciphertext) == {"api_key": key}
-    assert test_client.get("/api/providers").json()["connections"][3]["connected"] is True
+    status = test_client.get("/api/providers").json()
+    assert status["connections"][3]["connected"] is True
+    catalog = {provider["id"]: provider for provider in status["catalog"]}
+    assert catalog["anthropic"]["auth_methods"] == [{"id": "api_key", "label": "Connect Console API key"}]
+    assert catalog["anthropic"]["protocol"] == "anthropic_messages"
+    assert catalog["opencode"]["billing"] == "OpenCode Console plan or budget"
 
     disconnected = test_client.delete("/api/providers/opencode", headers={**ORIGIN, "x-csrf-token": csrf})
     assert disconnected.json() == {"provider": "opencode", "connected": False}

@@ -122,7 +122,8 @@ async function loadProviders() {
   const response = await fetch("/api/providers");
   if (!response.ok) throw new Error("AI connection status could not be loaded.");
   const data = await response.json();
-  setAssistantProviders(data.connections);
+  setAssistantProviders(data.connections, data.catalog);
+  const catalog = Object.fromEntries(data.catalog.map(item => [item.id, item]));
   providerCard.hidden = false;
   if (!data.credential_storage_ready) providerNotice.textContent = "Secure provider storage is not configured. Static hints are always available.";
   else if (!data.chatgpt_local_available) providerNotice.textContent = "API-key connections are available here. ChatGPT plan sign-in requires the local app.";
@@ -146,11 +147,11 @@ async function loadProviders() {
       endpoint.textContent = connection.connected ? `Endpoint · ${connection.api_base}` : "";
       endpoint.hidden = !connection.connected;
       localProviderForm.elements.base_url.value = connection.api_base ?? "";
-      localProviderForm.querySelector("button[type=submit]").textContent = connection.connected ? "Replace endpoint" : "Connect endpoint";
+      localProviderForm.querySelector("button[type=submit]").textContent = connection.connected ? "Replace endpoint" : catalog.local.auth_methods[0].label;
     } else {
       state.textContent = connection.connected ? "Connected · encrypted on this server" : "Not connected";
       const form = document.querySelector(`.provider-key-form[data-provider="${connection.provider}"]`);
-      form.querySelector("button[type=submit]").textContent = connection.connected ? "Replace API key" : "Connect API key";
+      form.querySelector("button[type=submit]").textContent = connection.connected ? "Replace connection" : catalog[connection.provider].auth_methods[0].label;
     }
     disconnect.hidden = !connection.connected;
     state.dataset.kind = connection.connected ? "success" : "";
@@ -166,12 +167,13 @@ async function loadProviders() {
   }
 }
 
-function setAssistantProviders(connections) {
+function setAssistantProviders(connections, catalog = []) {
   const available = currentUser ? connections.filter(item => item.connected && (item.provider !== "chatgpt" || item.plan_enabled)) : [];
   const selected = available.some(item => item.provider === assistantProvider.value) ? assistantProvider.value : "";
+  const names = Object.fromEntries(catalog.map(item => [item.id, item.name]));
   assistantProvider.replaceChildren(new Option("Choose a connected provider", ""));
   for (const item of available) assistantProvider.add(new Option(
-    item.provider === "chatgpt" ? "ChatGPT plan" : ({openai: "OpenAI API", anthropic: "Claude API", opencode: "OpenCode Console", local: "Local model"})[item.provider], item.provider,
+    item.provider === "chatgpt" ? "ChatGPT plan" : (names[item.provider] ?? item.provider), item.provider,
   ));
   assistantProvider.value = selected;
   assistantProvider.disabled = available.length === 0;

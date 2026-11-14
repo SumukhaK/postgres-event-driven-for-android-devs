@@ -28,6 +28,18 @@ router = APIRouter()
 API_PROVIDERS = {"openai", "anthropic", "opencode"}
 LOCAL_PROVIDER = "local"
 ALL_PROVIDERS = API_PROVIDERS | {"chatgpt", LOCAL_PROVIDER}
+PROVIDER_CATALOG = (
+    {"id": "chatgpt", "name": "ChatGPT", "protocol": "openai_responses",
+     "billing": "ChatGPT plan usage", "auth_methods": [{"id": "account_oauth", "label": "Continue with ChatGPT"}]},
+    {"id": "openai", "name": "OpenAI API", "protocol": "openai_responses",
+     "billing": "OpenAI API account", "auth_methods": [{"id": "api_key", "label": "Connect API key"}]},
+    {"id": "anthropic", "name": "Claude API", "protocol": "anthropic_messages",
+     "billing": "Claude Console credits or billing", "auth_methods": [{"id": "api_key", "label": "Connect Console API key"}]},
+    {"id": "opencode", "name": "OpenCode Console", "protocol": "opencode_chat",
+     "billing": "OpenCode Console plan or budget", "auth_methods": [{"id": "api_key", "label": "Connect API key"}]},
+    {"id": LOCAL_PROVIDER, "name": "Local model", "protocol": "openai_compatible_or_native_ollama",
+     "billing": "Your device or model host", "auth_methods": [{"id": "local_endpoint", "label": "Connect local endpoint"}]},
+)
 LOCAL_MODEL_HOSTS = {"localhost", "host.docker.internal"}
 OPENAI_ISSUER = "https://auth.openai.com"
 OPENAI_AUTHORIZE = f"{OPENAI_ISSUER}/api/accounts/authorize"
@@ -469,6 +481,10 @@ def provider_status(request: Request):
     return {
         "credential_storage_ready": encryption_ready(),
         "chatgpt_local_available": is_local_runtime(request) and encryption_ready(),
+        "catalog": [
+            {**provider, "available": provider["id"] != "chatgpt" or (is_local_runtime(request) and encryption_ready())}
+            for provider in PROVIDER_CATALOG
+        ],
         "connections": [
             {"provider": provider, "connected": provider in saved,
              "email": saved.get(provider, {}).get("email"),
