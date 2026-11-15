@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from learning_app.auth import current_session, verify_csrf
 from learning_app.credentials import CredentialEncryptionUnavailable
+from learning_app.observability import diagnostic_stage
 from learning_app.providers import (
     OPENAI_MODEL_URL,
     OPENAI_RESOURCE,
@@ -316,7 +317,9 @@ def assistant_models(provider: str, request: Request):
     if provider not in PROVIDERS:
         raise HTTPException(status_code=404, detail="That provider is not supported.")
     session = current_session(request)
-    return {"models": model_catalog(provider, request, session.user_id)}
+    with diagnostic_stage("model_discovery", provider=provider):
+        models = model_catalog(provider, request, session.user_id)
+    return {"models": models}
 
 
 @router.post("/respond")
@@ -329,11 +332,15 @@ def assistant_respond(payload: CoachRequest, request: Request):
         raise HTTPException(status_code=422, detail="Enter a question for the tutor.")
     if payload.provider == "opencode" and not payload.session_id:
         raise HTTPException(status_code=422, detail="Start a new assistant session and try again.")
-    context = lesson_context(payload)
+    with diagnostic_stage("lesson_context", provider=payload.provider, model=payload.model,
+                          action=payload.action, lesson=payload.lesson_slug):
+        context = lesson_context(payload)
     credentials = provider_credentials(payload.provider, session.user_id, request)
     prompt = payload.message.strip() if payload.action == "ask" else ACTION_PROMPTS[payload.action]
     messages = [turn.model_dump() for turn in payload.history]
     messages.append({"role": "user", "content": prompt})
     instructions = f"{INSTRUCTIONS}\n{context}"
-    answer = provider_response(payload.provider, credentials, payload.model, instructions, messages, payload.session_id)
+    with diagnostic_stage("provider_inference", provider=payload.provider, model=payload.model,
+                          action=payload.action, lesson=payload.lesson_slug):
+        answer = provider_response(payload.provider, credentials, payload.model, instructions, messages, payload.session_id)
     return {"answer": answer}

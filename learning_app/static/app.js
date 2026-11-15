@@ -48,6 +48,30 @@ let assistantBusy = false;
 let assistantRequestId = 0;
 let assistantSessionId = `ses_${crypto.randomUUID().replaceAll("-", "")}`;
 
+async function fetchApi(input, init = {}) {
+  const started = performance.now();
+  const url = new URL(input, location.href);
+  try {
+    const response = await fetch(input, init);
+    console.info("studio_api_response", {
+      request_id: response.headers.get("x-request-id"),
+      method: (init.method ?? "GET").toUpperCase(),
+      path: url.pathname,
+      status: response.status,
+      duration_ms: Math.round(performance.now() - started),
+    });
+    return response;
+  } catch (error) {
+    console.info("studio_api_transport_error", {
+      method: (init.method ?? "GET").toUpperCase(),
+      path: url.pathname,
+      duration_ms: Math.round(performance.now() - started),
+      error_kind: error?.name ?? "Error",
+    });
+    throw error;
+  }
+}
+
 function readCompleted() {
   try {
     const value = JSON.parse(localStorage.getItem("postgres-lab-completed") ?? "[]");
@@ -100,7 +124,7 @@ function renderAccount() {
 }
 
 async function sendProgress(slug, isComplete) {
-  const response = await fetch(`/api/progress/${encodeURIComponent(slug)}`, {
+  const response = await fetchApi(`/api/progress/${encodeURIComponent(slug)}`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-csrf-token": csrfToken },
     body: JSON.stringify({ completed: isComplete }),
@@ -110,7 +134,7 @@ async function sendProgress(slug, isComplete) {
 }
 
 async function syncAccountProgress() {
-  const response = await fetch("/api/progress");
+  const response = await fetchApi("/api/progress");
   if (!response.ok) throw new Error("Account progress could not be loaded.");
   const serverActivities = (await response.json()).activities;
   const serverCompleted = new Set(serverActivities.filter(activity => activity.completed).map(activity => activity.slug));
@@ -125,7 +149,7 @@ async function syncAccountProgress() {
 
 async function loadProviders() {
   if (!currentUser) return;
-  const response = await fetch("/api/providers");
+  const response = await fetchApi("/api/providers");
   if (!response.ok) throw new Error("AI connection status could not be loaded.");
   const data = await response.json();
   setAssistantProviders(data.connections, data.catalog);
@@ -231,7 +255,7 @@ async function loadAssistantModels() {
   }
   assistantStatus.textContent = "Loading the provider’s available models…";
   try {
-    const response = await fetch(`/api/assistant/models?provider=${encodeURIComponent(assistantProvider.value)}`);
+    const response = await fetchApi(`/api/assistant/models?provider=${encodeURIComponent(assistantProvider.value)}`);
     const data = await response.json();
     if (!response.ok) throw new Error(data.detail ?? "The model list could not be loaded.");
     assistantModel.replaceChildren(new Option(data.models.length ? "Choose a model" : "No models available", ""));
@@ -271,7 +295,7 @@ async function askAssistant(action, message = "") {
   updateAssistantControls();
   assistantStatus.textContent = "Sending your question to the selected provider…";
   try {
-    const response = await fetch("/api/assistant/respond", {
+    const response = await fetchApi("/api/assistant/respond", {
       method: "POST",
       headers: {"content-type": "application/json", "x-csrf-token": csrfToken},
       body: JSON.stringify({provider: assistantProvider.value, model: assistantModel.value,
@@ -323,7 +347,7 @@ document.querySelectorAll(".provider-key-form").forEach(form => form.addEventLis
   state.dataset.kind = "";
   try {
     const apiKey = new FormData(form).get("api_key");
-    const response = await fetch(`/api/providers/${provider}/key`, {
+    const response = await fetchApi(`/api/providers/${provider}/key`, {
       method: "POST",
       headers: { "content-type": "application/json", "x-csrf-token": csrfToken },
       body: JSON.stringify({ api_key: apiKey }),
@@ -352,7 +376,7 @@ localProviderForm.addEventListener("submit", async event => {
   state.dataset.kind = "";
   try {
     const values = new FormData(localProviderForm);
-    const response = await fetch("/api/providers/local", {
+    const response = await fetchApi("/api/providers/local", {
       method: "POST",
       headers: {"content-type": "application/json", "x-csrf-token": csrfToken},
       body: JSON.stringify({base_url: values.get("base_url"), api_key: values.get("api_key")}),
@@ -384,7 +408,7 @@ document.querySelector("#connect-chatgpt").addEventListener("click", async event
   chatgptAuthUrl.value = "";
   chatgptAuthCopyStatus.textContent = "";
   try {
-    const response = await fetch("/api/providers/chatgpt/start", {
+    const response = await fetchApi("/api/providers/chatgpt/start", {
       method: "POST", headers: { "x-csrf-token": csrfToken },
     });
     const data = await response.json();
@@ -433,7 +457,7 @@ document.querySelectorAll("[data-disconnect]").forEach(button => button.addEvent
   const state = document.querySelector(`#${provider}-state`);
   button.disabled = true;
   try {
-    const response = await fetch(`/api/providers/${provider}`, {
+    const response = await fetchApi(`/api/providers/${provider}`, {
       method: "DELETE", headers: { "x-csrf-token": csrfToken },
     });
     const data = await response.json();
@@ -453,7 +477,7 @@ document.querySelectorAll("[data-disconnect]").forEach(button => button.addEvent
 
 async function loadAccount() {
   try {
-    const response = await fetch("/api/auth/me");
+    const response = await fetchApi("/api/auth/me");
     if (!response.ok) throw new Error("Account status could not be loaded.");
     const data = await response.json();
     if (!data.user) return;
@@ -470,7 +494,7 @@ async function loadAccount() {
 async function authenticate(mode) {
   setAccountStatus(mode === "register" ? "Creating your account…" : "Signing in…");
   try {
-    const response = await fetch(`/api/auth/${mode}`, {
+    const response = await fetchApi(`/api/auth/${mode}`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(Object.fromEntries(new FormData(accountForm))),
@@ -500,7 +524,7 @@ document.querySelector("#sign-in").addEventListener("click", () => {
 });
 document.querySelector("#sign-out").addEventListener("click", async () => {
   try {
-    const response = await fetch("/api/auth/logout", { method: "POST", headers: { "x-csrf-token": csrfToken } });
+    const response = await fetchApi("/api/auth/logout", { method: "POST", headers: { "x-csrf-token": csrfToken } });
     if (!response.ok) throw new Error("Sign out could not be completed.");
     currentUser = undefined;
     csrfToken = undefined;
@@ -681,7 +705,7 @@ async function openLesson(slug, { announce = true } = {}) {
 
 async function start() {
   try {
-    const response = await fetch("/api/course");
+  const response = await fetchApi("/api/course");
     if (!response.ok) throw new Error("Course catalog is unavailable.");
     lessons = (await response.json()).lessons;
     if (!lessons.length) throw new Error("No lessons were found.");
