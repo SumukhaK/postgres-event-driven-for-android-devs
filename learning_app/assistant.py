@@ -25,6 +25,7 @@ from learning_app.providers import (
     load_credentials,
 )
 from learning_app.storage import database
+from learning_app.sql_validation import validate_sql_suggestions
 
 
 router = APIRouter()
@@ -343,4 +344,10 @@ def assistant_respond(payload: CoachRequest, request: Request):
     with diagnostic_stage("provider_inference", provider=payload.provider, model=payload.model,
                           action=payload.action, lesson=payload.lesson_slug):
         answer = provider_response(payload.provider, credentials, payload.model, instructions, messages, payload.session_id)
-    return {"answer": answer}
+    try:
+        with diagnostic_stage("sql_validation", provider=payload.provider, model=payload.model,
+                              action=payload.action, lesson=payload.lesson_slug):
+            sql_validation = validate_sql_suggestions(answer, SANDBOX_SCHEMA)
+    except Exception:
+        sql_validation = {"status": "unchecked", "issues": []}
+    return {"answer": answer, "sql_validation": sql_validation}

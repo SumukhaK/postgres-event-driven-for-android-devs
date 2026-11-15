@@ -345,7 +345,9 @@ def test_assistant_lists_models_and_sends_only_selected_lesson_context(client, m
         "provider": "openai", "model": "gpt-test-1", "lesson_slug": "05-joins",
         "exercise_slug": "05-joins", "action": "ask", "message": "What joins these rows?",
     })
-    assert response.status_code == 200 and response.json() == {"answer": "Use a join condition."}
+    assert response.status_code == 200
+    assert response.json()["answer"] == "Use a join condition."
+    assert response.json()["sql_validation"] == {"status": "not_applicable", "issues": []}
     assert sent["url"] == f"{providers.OPENAI_RESOURCE}/responses"
     assert sent["json"]["model"] == "gpt-test-1" and sent["json"]["store"] is False
     assert sent["json"]["instructions"].startswith("You are the PostgreSQL course tutor.")
@@ -399,7 +401,8 @@ def test_local_assistant_discovers_models_and_sends_contextual_chat_completion(c
 
     assert models.json() == {"models": [{"id": "llama3.1:8b", "name": "llama3.1:8b"}]}
     assert response.status_code == 200
-    assert response.json() == {"answer": "A join connects related rows."}
+    assert response.json()["answer"] == "A join connects related rows."
+    assert response.json()["sql_validation"] == {"status": "not_applicable", "issues": []}
     assert calls[0][0:2] == ("get", f"{base}/models")
     assert calls[1][0:2] == ("post", f"{base}/chat/completions")
     assert calls[0][2]["trust_env"] is False
@@ -441,7 +444,8 @@ def test_local_ollama_uses_native_chat_with_thinking_disabled_and_logs_safe_timi
         })
 
     assert response.status_code == 200
-    assert response.json() == {"answer": "SELECT retrieves rows from a database."}
+    assert response.json()["answer"] == "SELECT retrieves rows from a database."
+    assert response.json()["sql_validation"] == {"status": "not_applicable", "issues": []}
     assert sent["url"] == "http://127.0.0.1:11434/api/chat"
     assert sent["json"]["think"] is False
     assert sent["json"]["stream"] is False
@@ -496,6 +500,50 @@ def test_local_assistant_rejects_unknown_models_and_malformed_completion(client,
 
     assert response.status_code == expected
     assert "internal server detail" not in response.text
+
+
+def test_assistant_response_returns_schema_validation_without_changing_answer(client, monkeypatch):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    providers.save_credentials(1, "openai", {"api_key": "openai-test-api-key-123456"}, {})
+    answer = "Try this query:\n```sql\nSELECT active FROM products;\n```"
+    monkeypatch.setattr(assistant, "provider_response", lambda *args, **kwargs: answer)
+
+    response = test_client.post("/api/assistant/respond", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": "openai", "model": "gpt-test", "lesson_slug": "03-select",
+        "action": "ask", "message": "Show me active products.",
+    })
+
+    assert response.status_code == 200
+    assert response.json()["answer"] == answer
+    assert response.json()["sql_validation"] == {
+        "status": "issues",
+        "issues": [{
+            "identifier": "active",
+            "message": "This table or column is not present in the playground schema.",
+        }],
+    }
+
+
+def test_validator_failure_does_not_drop_tutor_answer(client, monkeypatch):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    providers.save_credentials(1, "openai", {"api_key": "openai-test-api-key-123456"}, {})
+    monkeypatch.setattr(assistant, "provider_response", lambda *args, **kwargs: "Here is the answer.")
+
+    def fail_validation(*args, **kwargs):
+        raise RuntimeError("parser details must not be exposed")
+
+    monkeypatch.setattr(assistant, "validate_sql_suggestions", fail_validation)
+    response = test_client.post("/api/assistant/respond", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": "openai", "model": "gpt-test", "lesson_slug": "03-select",
+        "action": "ask", "message": "What does SELECT do?",
+    })
+
+    assert response.status_code == 200
+    assert response.json()["answer"] == "Here is the answer."
+    assert response.json()["sql_validation"] == {"status": "unchecked", "issues": []}
+    assert "parser details must not be exposed" not in response.text
 
 
 def test_chatgpt_refreshes_and_requires_completed_sse_event(client, monkeypatch):

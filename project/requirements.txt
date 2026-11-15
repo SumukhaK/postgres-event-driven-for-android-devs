@@ -6,3 +6,4 @@ pytest
 httpx
 markdown
 cryptography
+sqlglot==30.31.0

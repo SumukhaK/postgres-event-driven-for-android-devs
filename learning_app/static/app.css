@@ -169,6 +169,10 @@ body { min-height: 100vh; background: var(--app-bg); color: var(--app-text); }
 .assistant-turn { margin: 0; color: #c3d0c8; font-size: 11px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
 .assistant-turn[data-role="user"] { color: #92cda8; }
 .assistant-turn[data-kind="error"] { color: #ff9b91; }
+.assistant-validation { margin: 0; color: #d8c88e; font-size: 10px; line-height: 1.5; }
+.assistant-validation[data-status="clear"] { color: #92cda8; }
+.assistant-validation[data-status="unchecked"] { color: #d8c88e; }
+.assistant-validation[data-status="issues"] { color: #ffb1a8; }
 .assistant-body .assistant-privacy { color: #778a80; font-size: 9px; }
 .database-card { display: flex; align-items: flex-start; gap: 9px; padding: 12px 14px; border: 1px solid var(--app-line); border-radius: 8px; background: #111a20; }
 .database-light { flex: 0 0 7px; width: 7px; height: 7px; margin-top: 4px; border-radius: 50%; background: #c59b5a; }

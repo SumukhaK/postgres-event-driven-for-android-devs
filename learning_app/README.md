@@ -94,3 +94,5 @@ After signing in to Developer Studio, open **AI connections**. The supported acc
 | OpenCode Console | OpenCode Console API key | The Console workspace budget or Go plan; some free models are only available inside OpenCode |
 
 This app connects Claude and OpenCode through their documented inference APIs and keys. It does not reuse tokens from Claude Code or the OpenCode CLI.
+
+The tutor marks clearly fenced SQL suggestions against the course's starter schema without executing them. It reports unknown table/column identifiers or says when it cannot check a query; a clear check confirms names only, not query correctness.

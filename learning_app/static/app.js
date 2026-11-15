@@ -283,6 +283,31 @@ function showAssistantTurn(role, content, kind = "") {
   return turn;
 }
 
+function showSqlValidation(result) {
+  if (!result || result.status === "not_applicable") return;
+  const note = document.createElement("p");
+  note.className = "assistant-validation";
+  if (result.status === "issues") {
+    const identifiers = Array.isArray(result.issues)
+      ? result.issues.map(issue => issue?.identifier).filter(value => typeof value === "string").slice(0, 5)
+      : [];
+    note.dataset.status = "issues";
+    note.textContent = identifiers.length
+      ? `Schema check: review unknown table or column names (${identifiers.join(", ")}).`
+      : "Schema check found an identifier to review.";
+  } else if (result.status === "unchecked") {
+    note.dataset.status = "unchecked";
+    note.textContent = "Schema check could not verify this SQL safely. Review it before running.";
+  } else if (result.status === "clear") {
+    note.dataset.status = "clear";
+    note.textContent = "Schema check passed: table and column names match the playground.";
+  } else {
+    return;
+  }
+  assistantLog.append(note);
+  assistantLog.scrollTop = assistantLog.scrollHeight;
+}
+
 async function askAssistant(action, message = "") {
   if (assistantBusy || !currentUser || !assistantProvider.value || !assistantModel.value || !currentLesson) return;
   const labels = {nudge: "Give me a nudge.", hint: "Give me a hint.", explanation: "Explain the key idea.", solution: "Show me a complete solution."};
@@ -308,6 +333,7 @@ async function askAssistant(action, message = "") {
     assistantHistory.push({role: "user", content: displayMessage}, {role: "assistant", content: data.answer});
     assistantHistory = assistantHistory.slice(-6);
     pendingTurn.textContent = `Tutor · ${data.answer}`;
+    showSqlValidation(data.sql_validation);
     assistantStatus.textContent = "Answer ready. Ask a follow-up or use a static hint above.";
     if (action === "ask") assistantQuestion.value = "";
   } catch (error) {
