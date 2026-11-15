@@ -96,6 +96,7 @@ def test_assistant_stages_are_correlated_without_logging_question_or_answer(tmp_
     records = [record for record in diagnostic_records(caplog) if record.get("stage")]
     assert [record["stage"] for record in records] == [
         "lesson_context", "lesson_context", "provider_inference", "provider_inference",
+        "sql_validation", "sql_validation",
     ]
     assert all(record["request_id"] == request_id for record in records)
     request_records = [record for record in diagnostic_records(caplog)
