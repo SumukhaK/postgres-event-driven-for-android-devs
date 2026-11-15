@@ -96,3 +96,5 @@ After signing in to Developer Studio, open **AI connections**. The supported acc
 This app connects Claude and OpenCode through their documented inference APIs and keys. It does not reuse tokens from Claude Code or the OpenCode CLI.
 
 The tutor marks clearly fenced SQL suggestions against the course's starter schema without executing them. It reports unknown table/column identifiers or says when it cannot check a query; a clear check confirms names only, not query correctness.
+
+Tutor answers stream into the playground as each provider sends text. The assistant shows time to first visible text and total response time separately; these timings describe responsiveness and do not imply the model finished sooner.

@@ -319,29 +319,79 @@ async function askAssistant(action, message = "") {
   assistantBusy = true;
   updateAssistantControls();
   assistantStatus.textContent = "Sending your question to the selected provider…";
+  const started = performance.now();
+  let firstVisibleMs = null;
+  let diagnosticId = null;
+  let answer = "";
+  let sqlValidation = null;
   try {
-    const response = await fetchApi("/api/assistant/respond", {
+    const response = await fetchApi("/api/assistant/respond/stream", {
       method: "POST",
       headers: {"content-type": "application/json", "x-csrf-token": csrfToken},
       body: JSON.stringify({provider: assistantProvider.value, model: assistantModel.value,
         lesson_slug: currentLesson.slug, exercise_slug: currentExercise?.slug ?? null,
         action, message, history: assistantHistory.slice(-6), session_id: assistantSessionId}),
     });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.detail ?? "The assistant could not answer this request.");
+    diagnosticId = response.headers.get("x-request-id");
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.detail ?? "The assistant could not answer this request.");
+    }
     if (requestId !== assistantRequestId) return;
-    assistantHistory.push({role: "user", content: displayMessage}, {role: "assistant", content: data.answer});
+    if (!response.body || !response.headers.get("content-type")?.includes("text/event-stream")) {
+      throw new Error("The provider returned an unexpected response. Retry the request.");
+    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let completed = false;
+    while (true) {
+      const {value, done} = await reader.read();
+      buffer += decoder.decode(value, {stream: !done});
+      let boundary;
+      while ((boundary = buffer.indexOf("\n\n")) !== -1) {
+        const frame = buffer.slice(0, boundary);
+        buffer = buffer.slice(boundary + 2);
+        const eventName = frame.split("\n").find(line => line.startsWith("event:"))?.slice(6).trim();
+        const dataText = frame.split("\n").filter(line => line.startsWith("data:"))
+          .map(line => line.slice(5).trim()).join("\n");
+        if (!dataText) continue;
+        const event = JSON.parse(dataText);
+        if (eventName === "delta" && typeof event.text === "string") {
+          if (firstVisibleMs === null) firstVisibleMs = performance.now() - started;
+          answer += event.text;
+          pendingTurn.textContent = `Tutor · ${answer}`;
+          assistantLog.scrollTop = assistantLog.scrollHeight;
+        } else if (eventName === "error") {
+          throw new Error(event.message ?? "The assistant could not finish this response.");
+        } else if (eventName === "complete") {
+          completed = true;
+          sqlValidation = event.sql_validation;
+        }
+      }
+      if (done) break;
+    }
+    if (!completed || !answer.trim()) throw new Error("The assistant stream ended before the answer completed.");
+    assistantHistory.push({role: "user", content: displayMessage}, {role: "assistant", content: answer.trim()});
     assistantHistory = assistantHistory.slice(-6);
-    pendingTurn.textContent = `Tutor · ${data.answer}`;
-    showSqlValidation(data.sql_validation);
-    assistantStatus.textContent = "Answer ready. Ask a follow-up or use a static hint above.";
+    showSqlValidation(sqlValidation);
+    const elapsedSeconds = ((performance.now() - started) / 1000).toFixed(1);
+    const firstSeconds = (firstVisibleMs / 1000).toFixed(1);
+    assistantStatus.textContent = `Answer ready · first text ${firstSeconds}s · total ${elapsedSeconds}s. Ask a follow-up or use a static hint above.`;
+    console.info("studio_assistant_timing", {
+      request_id: diagnosticId, provider: assistantProvider.value,
+      model: assistantModel.value, action, lesson: currentLesson.slug,
+      first_visible_ms: Math.round(firstVisibleMs),
+      total_ms: Math.round(performance.now() - started),
+    });
     if (action === "ask") assistantQuestion.value = "";
   } catch (error) {
     if (requestId !== assistantRequestId) return;
     userTurn.remove();
     pendingTurn.dataset.kind = "error";
-    pendingTurn.textContent = `Tutor · ${error.message}`;
-    assistantStatus.textContent = "The AI request did not complete. Your progress is safe; use a static hint above or retry after checking the provider.";
+    const reference = diagnosticId ? ` Reference: ${diagnosticId}.` : "";
+    pendingTurn.textContent = `Tutor · ${answer ? `${answer}\n\n` : ""}${error.message}${reference}`;
+    assistantStatus.textContent = `The AI request did not complete. Your progress is safe; use a static hint above or retry after checking the provider.${reference}`;
   } finally {
     if (requestId === assistantRequestId) {
       assistantBusy = false;
