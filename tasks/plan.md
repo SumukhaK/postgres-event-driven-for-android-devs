@@ -54,3 +54,24 @@ Provider feasibility from current official documentation:
 - [ ] Local end-to-end path is verified from clean startup through sign-up, practice, progress save, AI help (with configured credentials), and sign-in persistence.
 - [ ] Existing tutorial and demo builds remain intact.
 - [ ] External deployment prerequisites are listed; no live deployment is claimed without verification.
+
+## Phase 6 · Tutor reliability, responsiveness, and diagnostics
+
+Keep the application local-first. Implement these as separate, reviewable changes in `tasks/todo.md`; create one branch and PR per task, review each diff, then merge only into this repository's `main`.
+
+### Work order and dependencies
+
+1. **T28 · Privacy-safe diagnostics (foundation).** Add a request/correlation ID and structured, local-only events across browser request, account/progress routes, provider connection/model discovery, lesson-context assembly, assistant request, SQL validation, and response completion/failure. Include stage durations, provider/model/action/lesson identifiers where safe, outcome categories, and time to first visible text when streaming is added. Never record prompts, generated answers, account emails, keys/tokens, OAuth codes/state, or complete authorization URLs. **Acceptance:** a failed request can be reconstructed by ID and stage without content or credentials appearing in logs; errors remain sanitized to learners.
+2. **T29 · Non-executing SQL identifier validation.** Select a PostgreSQL AST parser compatible with the current Python stack. Inspect only clearly delimited SQL suggestions, resolve supported table/alias/column references against the active playground schema, and return an advisory status. Treat ambiguous, unsupported, or partially generated SQL as unchecked rather than valid. **Acceptance:** catches the known nonexistent-column case and handles aliases/joins/CTEs in the supported subset; prose and answer text remain intact; generated SQL is never executed for validation.
+3. **T25 · Stream answers and measure perceived latency.** Send provider deltas to the browser as they arrive for supported adapters; handle completion and sanitized mid-stream errors. Log time to first visible text separately from full duration under T28's request ID. Include SQL-validation status in the final stream event. **Acceptance:** learner sees partial text promptly, a finished response is distinguishable from a partial/error response, and normal non-streaming/provider fallback paths remain usable.
+4. **T26 · Tune generation from evidence.** Compare action-specific output budgets and optional Ollama residency one change at a time. Reuse the fixed prompt set, same accuracy rubric, cold/warm conditions, and available laptop resources; include answer truncation and memory use. **Acceptance:** retain a tuning only if answer quality does not regress; record measurements and hardware limits; do not load a larger model or run concurrent local model evaluations.
+
+### Parallel work
+
+T28 can be implemented alongside isolated T29 parser research/prototype work. T29's API/result contract must be agreed before T25 integrates validation metadata into the stream. T26 depends on stable T28 timing and T25's first-visible-text measurement, so its device evaluation comes last. Merge each task before rebasing the next dependent PR.
+
+### Verification and rollout
+
+- Add focused regression tests for each behavior and run the relevant app/frontend suites plus builds before each task is marked done.
+- Review each PR against its acceptance criteria, inspect logs for sensitive-content leakage, and verify the final combined learner flow locally before calling the phase complete.
+- Do not enable remote telemetry, public hosting, or a larger local model as part of this phase.
