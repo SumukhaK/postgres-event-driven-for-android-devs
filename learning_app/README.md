@@ -66,10 +66,12 @@ python tools/build.py
 npm run build
 $env:LEARNING_CREDENTIAL_KEY = "<generated Fernet key>"
 $env:LEARNING_DB_PATH = "data/learning.sqlite3"
-python -m uvicorn learning_app.main:app --host 127.0.0.1 --port 8000
+python -m uvicorn learning_app.main:app --host 127.0.0.1 --port 8000 --no-access-log
 ```
 
 Open `http://127.0.0.1:8000/`. The health check is `/api/health`; built lessons are served under `/course/`.
+
+API requests emit local structured lifecycle and provider-stage diagnostics in the server console. The browser console records API method, path, status, duration, and response request ID. Responses include an `X-Request-ID`; use it to match a browser request with its server log entries. Request bodies, prompts, answers, credentials, and URL query strings are excluded. Uvicorn access logs are disabled so its raw request line cannot expose query parameters. Diagnostics stay in the local browser/server consoles; the app sends no analytics to a remote service.
 
 ## Backend hosting notes
 

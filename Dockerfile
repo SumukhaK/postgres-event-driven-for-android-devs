@@ -28,4 +28,4 @@ COPY --chown=app:app --from=playground-build /app/learning_app/dist ./learning_a
 VOLUME ["/data"]
 USER app
 EXPOSE 8000
-CMD ["python", "-m", "uvicorn", "learning_app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "learning_app.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]

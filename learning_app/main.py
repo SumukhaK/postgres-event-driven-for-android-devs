@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from learning_app.auth import check_same_origin, create_session, current_session, hash_password, verify_csrf, verify_password
 from learning_app.assistant import router as assistant_router
 from learning_app.providers import router as provider_router
+from learning_app.observability import RequestDiagnosticsMiddleware
 from learning_app.storage import database
 
 
@@ -27,6 +28,7 @@ EXERCISE_SLUGS = {exercise["slug"] for exercise in EXERCISES}
 DUMMY_PASSWORD_HASH = hash_password("not-a-real-account-password")
 
 app = FastAPI(title="Postgres Lab", version="0.1.0")
+app.add_middleware(RequestDiagnosticsMiddleware)
 
 
 class Credentials(BaseModel):
