@@ -63,8 +63,16 @@ Current provider feasibility and official documentation references are recorded 
 - [x] **T22 · Reconcile lesson and playground schemas** — keep the backend sample schema separate; derive assistant schema context from the active playground seed schema so lesson-specific differences are respected.
 - [x] **T23 · Add schema-grounded assistant context** — include only relevant sandbox table/column definitions and verified exercise references for ask/solution actions; hints do not expose answer references. Added regression coverage for schema and answer-key boundaries.
 - [x] **T24 · Measure assistant latency by stage** — privacy-safe Ollama request/load/prompt/generation timing and token counts are logged. The exploratory retest completed 5/5 prompts for all three providers: 7B averaged 9.64 s, 14B 29.17 s, and GPT 4.50 s; all scored 25/25. Comparisons are confounded by verified reference context and changed machine/network conditions.
-- [ ] **T25 · Improve perceived response time** — stream incremental answers where provider routes support it; measure time to first visible text separately from completion time.
-- [ ] **T26 · Tune output/residency with evidence** — concise tutor instructions are included in the trial; optional Ollama model residency remains untested. Keep the verified reference behavior only if GPT comparison supports it.
+- [ ] **T25 · Stream tutor answers and measure perceived latency** — emit incremental answer text where supported; record time to first visible text separately from full completion. Depends on the T28 diagnostic event contract and T29 SQL-validation result contract.
+- [ ] **T26 · Tune output/residency with evidence** — compare action-specific output budgets and optional Ollama `keep_alive` against the same prompts, quality rubric, truncation, latency, and memory use. Keep concise prompting and verified references only when repeated checks support them. Depends on usable T28 stage metrics; do not run large models beyond the laptop's available headroom.
 - [x] **T27 · Keep ChatGPT sign-in usable when browser launch fails** — open consent in a new tab while keeping the playground open; display the short-lived authorization URL with a copy button and manual-selection fallback.
+- [ ] **T28 · Add privacy-safe end-to-end diagnostics** — correlate app requests across browser and server; log named stages for auth/progress/provider/model/context/assistant/validation/stream outcomes and durations. Keep logs local and exclude prompts, answers, emails, credentials, OAuth codes, and full authorization URLs. Provide enough request IDs and sanitized failure details to locate stalls.
+- [ ] **T29 · Validate generated SQL identifiers without executing it** — parse PostgreSQL SQL suggestions and compare table/column references with the active playground schema; report clear warnings for invalid identifiers and an explicit unsupported/uncertain state. Preserve normal prose and never execute generated SQL for validation.
+
+### Checkpoint · Assistant reliability and responsiveness
+
+- [ ] SQL validation, streamed responses, and privacy-safe diagnostics work together without exposing answer references to hints or nudges.
+- [ ] Accuracy and latency tuning is measured against the same prompts, with memory use and truncation recorded; no quality regression is accepted for a latency gain.
+- [ ] Focused tests/builds and one local browser flow pass before each task is marked complete.
 
 Research and the implementation order are in [`ai-assistant-quality-and-latency.md`](ai-assistant-quality-and-latency.md).
