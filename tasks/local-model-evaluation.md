@@ -49,3 +49,13 @@ The five latency positions follow the prompt order in the prior table. All three
 The first fresh GPT sign-in attempt reached the local callback but failed during token exchange because the evaluation server could not make outbound connections from its restricted process. Restarting the isolated server with outbound access allowed the token exchange and the completed run above; the failed attempt was not scored.
 
 The optimization code and results are on `main` per the user's direction. If later evaluations do not reproduce a useful improvement, restore the pre-optimization version from `codex/pre-optimization-baseline` and rerun the suite.
+
+## T26 output/residency tuning checkpoint
+
+No candidate setting is accepted yet. The application keeps the existing 500-token ceiling because the earlier Qwen2.5 7B index explanation was already cut off at that limit; reducing it without an action-specific quality run risks making answers less useful. The existing fixed-prompt report does not separate nudge/hint output quality or include memory readings, so it cannot justify a shorter action-specific budget.
+
+The native Ollama request does not set `keep_alive`; current Ollama documentation says the server default is five minutes. The five-prompt Qwen runs averaged 9.64 seconds (7B) and 29.17 seconds (14B), which is short enough that the default can retain the model across this sequential run, while an explicit longer residency could keep scarce laptop memory occupied after use. This is a reason to keep the default for now, not a measured comparison of residency settings.
+
+**Run status:** no T26 prompts were sent and no model was loaded. A read-only request to `http://127.0.0.1:11434/api/tags` was refused, and the Ollama CLI could not start its server because its log directory returned access denied. Therefore latency, answer quality, truncation, and memory for candidate budgets/residency are not measured; T26 stays open. When Ollama is reachable, compare one model at a time using the same five prompts and scoring rubric, retain the current 500-token control, and record response truncation, first-visible/total time, Ollama load/prompt/generation timings, and `ollama ps` residency. Do not run the 7B and 14B evaluations concurrently.
+
+The current API and residency behavior are described in the [Ollama chat API](https://docs.ollama.com/api/chat) and [Ollama local FAQ](https://docs.ollama.com/faq#how-do-i-keep-a-model-loaded-in-memory-or-make-it-unload-immediately).
