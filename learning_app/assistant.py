@@ -459,6 +459,8 @@ def assistant_stream(payload, credentials, instructions, messages):
                         text = event.get("delta", "") if event.get("type") == "response.output_text.delta" else ""
                         if event.get("type") == "response.completed":
                             completed = True
+                            if not answer_text:
+                                text = output_text(event.get("response", {}))
                         elif event.get("type") in {"response.failed", "response.incomplete", "error"}:
                             raise HTTPException(status_code=502, detail="The provider could not complete this response. Try again.")
                     else:

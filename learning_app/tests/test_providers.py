@@ -508,6 +508,31 @@ def test_assistant_stream_timeout_keeps_partial_answer_and_sanitizes_error(clien
     assert "event: complete" not in response.text
 
 
+def test_responses_stream_uses_completed_text_when_provider_omits_deltas(client, monkeypatch):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    providers.save_credentials(1, "openai", {"api_key": "openai-test-api-key-123456"}, {})
+
+    class StreamResponse:
+        status_code = 200
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return None
+        def iter_lines(self):
+            yield 'data: {"type":"response.completed","response":{"output":[{"content":[{"type":"output_text","text":"Completed answer."}]}]}}'
+
+    monkeypatch.setattr(assistant.httpx, "stream", lambda *args, **kwargs: StreamResponse())
+    response = test_client.post("/api/assistant/respond/stream", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": "openai", "model": "gpt-test", "lesson_slug": "03-select",
+        "action": "hint",
+    })
+
+    assert response.status_code == 200
+    assert "Completed answer." in response.text
+    assert "event: complete" in response.text
+
+
 @pytest.mark.parametrize("provider,credentials,lines,expected,done_field", [
     ("anthropic", {"api_key": "anthropic-test-api-key-123456"},
      ['event: content_block_delta', 'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"A helpful hint."}}',
