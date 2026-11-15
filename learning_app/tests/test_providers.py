@@ -362,6 +362,187 @@ def test_assistant_lists_models_and_sends_only_selected_lesson_context(client, m
     assert sent["json"]["input"] == [{"role": "user", "content": "What joins these rows?"}]
 
 
+def test_assistant_stream_endpoint_emits_deltas_and_completion_metadata(client, monkeypatch, caplog):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    providers.save_credentials(1, "local", {"api_base": "http://127.0.0.1:8000/v1"}, {})
+
+    class StreamResponse:
+        status_code = 200
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return None
+        def iter_lines(self):
+            yield 'data: {"choices":[{"delta":{"content":"Use the "}}]}'
+            yield 'data: {"choices":[{"delta":{"content":"is_active column."}}]}'
+            yield 'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}'
+
+    sent = {}
+    def stream(method, url, **kwargs):
+        sent.update(method=method, url=url, **kwargs)
+        return StreamResponse()
+    monkeypatch.setattr(assistant.httpx, "stream", stream)
+
+    with caplog.at_level("INFO", logger="learning_app.diagnostics"):
+        response = test_client.post("/api/assistant/respond/stream", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": "local", "model": "qwen3:14b", "lesson_slug": "03-select",
+        "action": "ask", "message": "Which column marks active products?",
+        })
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    assert 'event: delta\ndata: {"text": "Use the "}' in response.text
+    assert 'event: delta\ndata: {"text": "is_active column."}' in response.text
+    assert 'event: complete\ndata: {"first_delta_ms":' in response.text
+    assert '"sql_validation": {"status": "not_applicable", "issues": []}' in response.text
+    assert sent["json"]["stream"] is True
+    assert sent["json"]["messages"][0]["role"] == "system"
+    request_id = response.headers["x-request-id"]
+    assert "assistant_stream" in caplog.text and request_id in caplog.text
+    assert "Which column marks active products?" not in caplog.text
+    assert "Use the is_active column." not in caplog.text
+
+
+def test_assistant_stream_complete_event_includes_sql_validation(client, monkeypatch):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    providers.save_credentials(1, "local", {"api_base": "http://127.0.0.1:8000/v1"}, {})
+
+    class StreamResponse:
+        status_code = 200
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return None
+        def iter_lines(self):
+            yield 'data: {"choices":[{"delta":{"content":"```sql\\nSELECT active FROM products;\\n```"}}]}'
+            yield 'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}'
+
+    monkeypatch.setattr(assistant.httpx, "stream", lambda *args, **kwargs: StreamResponse())
+    response = test_client.post("/api/assistant/respond/stream", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": "local", "model": "qwen3:14b", "lesson_slug": "03-select",
+        "action": "ask", "message": "Show active products.",
+    })
+
+    assert response.status_code == 200
+    assert '"sql_validation": {"status": "issues"' in response.text
+    assert '"identifier": "active"' in response.text
+
+
+@pytest.mark.parametrize("provider,credentials,metadata,lines", [
+    ("openai", {"api_key": "openai-test-api-key-123456"}, {},
+     ['data: {"type":"response.output_text.delta","delta":"OpenAI response."}',
+      'data: {"type":"response.completed","response":{}}']),
+    ("chatgpt", {
+        "client_id": "oaiapp_test", "access_token": "valid-access",
+        "refresh_token": "valid-refresh", "expires_at": int(time.time()) + 3600,
+        "scopes": ["chatgpt.tokens.use.direct"],
+    }, {"plan_enabled": True},
+     ['data: {"type":"response.output_text.delta","delta":"ChatGPT response."}',
+      'data: {"type":"response.completed","response":{}}']),
+    ("opencode", {"api_key": "opencode-test-api-key-123456",
+                  "api_base": "https://opencode.ai/inference"}, {},
+     ['data: {"choices":[{"delta":{"content":"OpenCode response."}}]}',
+      'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}']),
+])
+def test_assistant_streams_openai_chatgpt_and_opencode(client, monkeypatch, provider, credentials, metadata, lines):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    providers.save_credentials(1, provider, credentials, metadata)
+
+    class StreamResponse:
+        status_code = 200
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return None
+        def iter_lines(self):
+            yield from lines
+
+    sent = {}
+    def stream(method, url, **kwargs):
+        sent.update(method=method, url=url, **kwargs)
+        return StreamResponse()
+
+    monkeypatch.setattr(assistant.httpx, "stream", stream)
+    response = test_client.post("/api/assistant/respond/stream", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": provider, "model": "test-model", "lesson_slug": "03-select",
+        "action": "hint", "session_id": "ses_1234567890abcdef",
+    })
+
+    assert response.status_code == 200
+    assert "event: complete" in response.text
+    expected_text = {"openai": "OpenAI response.", "chatgpt": "ChatGPT response.",
+                     "opencode": "OpenCode response."}[provider]
+    assert expected_text in response.text
+    assert sent["json"]["stream"] is True
+    assert sent["url"].endswith("/responses") if provider in {"openai", "chatgpt"} else sent["url"].endswith("/openai/v1/chat/completions")
+
+
+def test_assistant_stream_timeout_keeps_partial_answer_and_sanitizes_error(client, monkeypatch):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    providers.save_credentials(1, "local", {"api_base": "http://127.0.0.1:8000/v1"}, {})
+
+    class StreamResponse:
+        status_code = 200
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return None
+        def iter_lines(self):
+            yield 'data: {"choices":[{"delta":{"content":"Partial answer."}}]}'
+            raise assistant.httpx.ReadTimeout("sensitive provider response")
+
+    monkeypatch.setattr(assistant.httpx, "stream", lambda *args, **kwargs: StreamResponse())
+    response = test_client.post("/api/assistant/respond/stream", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": "local", "model": "test-model", "lesson_slug": "03-select",
+        "action": "hint",
+    })
+
+    assert response.status_code == 200
+    assert "Partial answer." in response.text
+    assert "The AI request timed out. Try again." in response.text
+    assert "sensitive provider response" not in response.text
+    assert "event: complete" not in response.text
+
+
+@pytest.mark.parametrize("provider,credentials,lines,expected,done_field", [
+    ("anthropic", {"api_key": "anthropic-test-api-key-123456"},
+     ['event: content_block_delta', 'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"A helpful hint."}}',
+      'event: message_stop', 'data: {"type":"message_stop"}'],
+     "A helpful hint.", '"first_delta_ms"'),
+    ("local", {"api_base": "http://127.0.0.1:11434/v1", "runtime": "ollama"},
+     ['{"message":{"role":"assistant","content":"A safe query."},"done":false}',
+      '{"message":{"role":"assistant","content":""},"done":true}'],
+     "A safe query.", '"total_ms"'),
+])
+def test_assistant_streams_anthropic_and_ollama_protocols(client, monkeypatch, provider, credentials, lines, expected, done_field):
+    test_client, _ = client
+    csrf = connect_user(test_client)
+    providers.save_credentials(1, provider, credentials, {})
+
+    class StreamResponse:
+        status_code = 200
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return None
+        def iter_lines(self):
+            yield from lines
+
+    monkeypatch.setattr(assistant.httpx, "stream", lambda *args, **kwargs: StreamResponse())
+    response = test_client.post("/api/assistant/respond/stream", headers={**ORIGIN, "x-csrf-token": csrf}, json={
+        "provider": provider, "model": "test-model", "lesson_slug": "03-select",
+        "action": "hint",
+    })
+
+    assert response.status_code == 200
+    assert expected in response.text
+    assert "event: complete" in response.text and done_field in response.text
+
+
 @pytest.mark.parametrize("key", ["local-model-test-key-123", ""])
 def test_local_assistant_discovers_models_and_sends_contextual_chat_completion(client, monkeypatch, key):
     test_client, _ = client

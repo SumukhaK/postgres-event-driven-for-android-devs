@@ -9,11 +9,12 @@ from urllib.parse import urlsplit, urlunsplit
 
 import httpx
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from learning_app.auth import current_session, verify_csrf
 from learning_app.credentials import CredentialEncryptionUnavailable
-from learning_app.observability import diagnostic_stage
+from learning_app.observability import diagnostic_event, diagnostic_stage
 from learning_app.providers import (
     OPENAI_MODEL_URL,
     OPENAI_RESOURCE,
@@ -351,3 +352,189 @@ def assistant_respond(payload: CoachRequest, request: Request):
     except Exception:
         sql_validation = {"status": "unchecked", "issues": []}
     return {"answer": answer, "sql_validation": sql_validation}
+
+
+def assistant_stream(payload, credentials, instructions, messages):
+    """Yield provider text as SSE without exposing provider response bodies."""
+    provider = payload.provider
+    if provider == "chatgpt":
+        url = f"{OPENAI_RESOURCE}/responses"
+        headers = {"Authorization": f"Bearer {credentials['access_token']}", "Content-Type": "application/json"}
+        body = {"model": payload.model, "instructions": instructions, "input": messages,
+                "store": False, "stream": True}
+        protocol = "responses"
+    elif provider == "openai":
+        url = f"{OPENAI_RESOURCE}/responses"
+        headers = {"Authorization": f"Bearer {credentials['api_key']}", "Content-Type": "application/json"}
+        body = {"model": payload.model, "instructions": instructions, "input": messages,
+                "store": False, "stream": True, "max_output_tokens": 500}
+        protocol = "responses"
+    elif provider == "anthropic":
+        url = "https://api.anthropic.com/v1/messages"
+        headers = {"x-api-key": credentials["api_key"], "anthropic-version": "2026-10-21"}
+        body = {"model": payload.model, "system": instructions, "messages": messages,
+                "max_tokens": 500, "stream": True}
+        protocol = "anthropic"
+    elif provider == "opencode":
+        base = credentials.get("api_base")
+        if base not in {"https://opencode.ai/inference", "https://opencode.ai/inference/go"}:
+            base = "https://opencode.ai/inference"
+        url = f"{base}/openai/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {credentials['api_key']}", "x-opencode-session": payload.session_id}
+        body = {"model": payload.model, "messages": [{"role": "system", "content": instructions}, *messages],
+                "max_tokens": 500, "stream": True}
+        protocol = "chat"
+    else:
+        parsed = urlsplit(credentials["api_base"])
+        ollama = credentials.get("runtime") == "ollama" or parsed.port == 11434
+        headers = {"Content-Type": "application/json"}
+        if credentials.get("api_key"):
+            headers["Authorization"] = f"Bearer {credentials['api_key']}"
+        chat_messages = [{"role": "system", "content": instructions}, *messages]
+        if ollama:
+            path = parsed.path.rstrip("/")
+            if path.endswith("/v1"):
+                path = path[:-3].rstrip("/")
+            url = urlunsplit((parsed.scheme, parsed.netloc, path, "", "")).rstrip("/") + "/api/chat"
+            body = {"model": payload.model, "messages": chat_messages, "think": False,
+                    "stream": True, "options": {"num_predict": 500}}
+            protocol = "ollama"
+        else:
+            url = f"{credentials['api_base']}/chat/completions"
+            body = {"model": payload.model, "messages": chat_messages, "max_tokens": 500, "stream": True}
+            protocol = "chat"
+
+    timeout = httpx.Timeout(connect=10, read=180, write=15, pool=10) if provider == LOCAL_PROVIDER else 45
+    started = time.perf_counter()
+    first_delta_ms = None
+    answer_text = []
+    completed = False
+    event_type = ""
+    diagnostic_event("assistant_stream", "started", stage="provider_inference",
+                     provider=provider, model=payload.model, action=payload.action,
+                     lesson=payload.lesson_slug)
+    try:
+        with httpx.stream("POST", url, headers=headers, json=body, timeout=timeout,
+                          trust_env=provider != LOCAL_PROVIDER) as response:
+            if response.status_code != 200:
+                provider_error(provider, response.status_code)
+            for line in response.iter_lines():
+                if isinstance(line, bytes):
+                    line = line.decode("utf-8", errors="replace")
+                if not line:
+                    continue
+                if protocol == "anthropic":
+                    if line.startswith("event:"):
+                        event_type = line[6:].strip()
+                        continue
+                    if not line.startswith("data:"):
+                        continue
+                    try:
+                        event = json.loads(line[5:].strip())
+                    except ValueError:
+                        continue
+                    event_type = event.get("type", event_type)
+                    text = (event.get("delta") or {}).get("text", "") if event_type == "content_block_delta" else ""
+                    if event_type == "message_stop":
+                        completed = True
+                else:
+                    if not line.startswith("data:"):
+                        if protocol == "ollama" and line.startswith("{"):
+                            data = line
+                        else:
+                            continue
+                    else:
+                        data = line[5:].strip()
+                    if data == "[DONE]":
+                        completed = protocol == "chat"
+                        break
+                    try:
+                        event = json.loads(data)
+                    except ValueError:
+                        continue
+                    if protocol == "ollama":
+                        text = (event.get("message") or {}).get("content", "")
+                        completed = completed or event.get("done") is True
+                    elif protocol == "responses":
+                        text = event.get("delta", "") if event.get("type") == "response.output_text.delta" else ""
+                        if event.get("type") == "response.completed":
+                            completed = True
+                        elif event.get("type") in {"response.failed", "response.incomplete", "error"}:
+                            raise HTTPException(status_code=502, detail="The provider could not complete this response. Try again.")
+                    else:
+                        choice = (event.get("choices") or [{}])[0]
+                        text = (choice.get("delta") or {}).get("content", "")
+                        completed = completed or choice.get("finish_reason") is not None
+                if text:
+                    if first_delta_ms is None:
+                        first_delta_ms = round((time.perf_counter() - started) * 1000)
+                    answer_text.append(text)
+                    yield "event: delta\ndata: " + json.dumps({"text": text}, ensure_ascii=False) + "\n\n"
+        if not completed:
+            raise HTTPException(status_code=502, detail="The provider ended the stream before completing a response.")
+        try:
+            with diagnostic_stage("sql_validation", provider=provider, model=payload.model,
+                                  action=payload.action, lesson=payload.lesson_slug):
+                sql_validation = validate_sql_suggestions("".join(answer_text), SANDBOX_SCHEMA)
+        except Exception:
+            sql_validation = {"status": "unchecked", "issues": []}
+        total_ms = round((time.perf_counter() - started) * 1000)
+        diagnostic_event("assistant_stream", "success", stage="provider_inference",
+                         provider=provider, model=payload.model, action=payload.action,
+                         lesson=payload.lesson_slug, duration_ms=total_ms,
+                         first_body_ms=first_delta_ms)
+        yield "event: complete\ndata: " + json.dumps({
+            "first_delta_ms": first_delta_ms,
+            "total_ms": total_ms,
+            "sql_validation": sql_validation,
+        }) + "\n\n"
+    except HTTPException as error:
+        diagnostic_event("assistant_stream", "error", stage="provider_inference",
+                         provider=provider, model=payload.model, action=payload.action,
+                         lesson=payload.lesson_slug, status_code=error.status_code,
+                         duration_ms=round((time.perf_counter() - started) * 1000),
+                         first_body_ms=first_delta_ms, error_kind="http")
+        yield "event: error\ndata: " + json.dumps({"message": error.detail}) + "\n\n"
+    except httpx.TimeoutException:
+        diagnostic_event("assistant_stream", "error", stage="provider_inference",
+                         provider=provider, model=payload.model, action=payload.action,
+                         lesson=payload.lesson_slug, status_code=504,
+                         duration_ms=round((time.perf_counter() - started) * 1000),
+                         first_body_ms=first_delta_ms, error_kind="timeout")
+        yield "event: error\ndata: " + json.dumps({"message": "The AI request timed out. Try again."}) + "\n\n"
+    except httpx.HTTPError:
+        diagnostic_event("assistant_stream", "error", stage="provider_inference",
+                         provider=provider, model=payload.model, action=payload.action,
+                         lesson=payload.lesson_slug, status_code=502,
+                         duration_ms=round((time.perf_counter() - started) * 1000),
+                         first_body_ms=first_delta_ms, error_kind="transport")
+        yield "event: error\ndata: " + json.dumps({"message": "The provider could not complete this request. Try again."}) + "\n\n"
+    except Exception:
+        diagnostic_event("assistant_stream", "error", stage="provider_inference",
+                         provider=provider, model=payload.model, action=payload.action,
+                         lesson=payload.lesson_slug, status_code=502,
+                         duration_ms=round((time.perf_counter() - started) * 1000),
+                         first_body_ms=first_delta_ms, error_kind="internal")
+        yield "event: error\ndata: " + json.dumps({"message": "The provider could not complete this request. Try again."}) + "\n\n"
+
+
+@router.post("/respond/stream")
+def assistant_respond_stream(payload: CoachRequest, request: Request):
+    session = current_session(request)
+    verify_csrf(request, session)
+    if not MODEL_ID.fullmatch(payload.model):
+        raise HTTPException(status_code=422, detail="Choose a valid model.")
+    if payload.action == "ask" and not payload.message.strip():
+        raise HTTPException(status_code=422, detail="Enter a question for the tutor.")
+    if payload.provider == "opencode" and not payload.session_id:
+        raise HTTPException(status_code=422, detail="Start a new assistant session and try again.")
+    with diagnostic_stage("lesson_context", provider=payload.provider, model=payload.model,
+                          action=payload.action, lesson=payload.lesson_slug):
+        context = lesson_context(payload)
+    credentials = provider_credentials(payload.provider, session.user_id, request)
+    prompt = payload.message.strip() if payload.action == "ask" else ACTION_PROMPTS[payload.action]
+    messages = [turn.model_dump() for turn in payload.history]
+    messages.append({"role": "user", "content": prompt})
+    instructions = f"{INSTRUCTIONS}\n{context}"
+    return StreamingResponse(assistant_stream(payload, credentials, instructions, messages), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
