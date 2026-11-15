@@ -14,7 +14,6 @@ from pydantic import BaseModel, Field
 from learning_app.auth import current_session, verify_csrf
 from learning_app.credentials import CredentialEncryptionUnavailable
 from learning_app.observability import diagnostic_stage
-from learning_app.observability import diagnostic_stage
 from learning_app.providers import (
     OPENAI_MODEL_URL,
     OPENAI_RESOURCE,
