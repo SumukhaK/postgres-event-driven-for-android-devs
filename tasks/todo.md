@@ -76,3 +76,11 @@ Current provider feasibility and official documentation references are recorded 
 - [ ] Focused tests/builds and one local browser flow pass before each task is marked complete.
 
 Research and the implementation order are in [`ai-assistant-quality-and-latency.md`](ai-assistant-quality-and-latency.md).
+
+### T26 controlled trial · 2026-11-16
+
+- [x] Prepare an isolated current-main trial using app-built lesson context, fixed seed/temperature/context size, and saved public exercise answers.
+- [x] Check resource guards: no downloads or competing resident models; insufficient-memory requests never load a model; inference failures are saved and the trial model is unloaded. Three focused tests pass.
+- [ ] Run two cold/warm residency pairs, then two counterbalanced comparisons of 500-token control versus 160-token hint/nudge limits. Ask, explanation, and solution stay at 500 as unchanged controls.
+- [ ] Review correctness, usefulness, unsupported claims, hint answer leakage, truncation, first-text receipt, total time, provider stage timings, and RAM/residency. Browser paint latency is outside this native API trial.
+- [ ] Record keep/reject decisions, self-review the PR, and merge only supported changes. Run 14B only with enough RAM while preserving ZCode; never load both models together.
