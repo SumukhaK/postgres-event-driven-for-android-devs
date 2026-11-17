@@ -52,3 +52,14 @@ The initial comparison exposed a playground timeout/configuration bug; those tim
 | ChatGPT plan (`gpt-6.1-sol`) | Schema/reference context trial | 4.5 s | 5/5 | 25/25 | All five answers matched the verified exercise solutions and explanations. |
 
 In this small trial, Qwen2.5 7B improved by 15 points and averaged 27.5 seconds faster; Qwen3 14B improved by 9 points and averaged 30.0 seconds faster; ChatGPT improved by 3 points and averaged 4.7 seconds faster. The GPT retest averaged 4.50 s after a 3.45 s warm-up. These are not controlled model-only comparisons: optimized prompts include verified exercise references, the earlier literal prompts were not retained and were reconstructed from exercise descriptions, and machine/network conditions differed between runs. Treat the improvements as promising, not conclusive. Accuracy remains the priority on this 4 GB GPU / 16 GB RAM laptop. See the [full prompts, per-prompt latencies, and scoring notes](tasks/local-model-evaluation.md).
+
+### Output-limit and residency follow-up (T26)
+
+On November 16–17, 2026, each local model completed 24 native Ollama requests with app-built context. A 160-token hint/nudge ceiling showed no repeatable benefit over 500; **production settings remain unchanged**. Immediate reuse avoided model reload and reduced prompt processing:
+
+| Model | Cold → warm mean, same explanation | Minimum free system RAM | Completed / truncated |
+| --- | ---: | ---: | ---: |
+| Qwen2.5 7B | 27.021 → 13.218 s | 1.96 GiB | 24 / 0 |
+| Qwen3 14B | 46.753 → 19.924 s | 1.51 GiB | 24 / 0 |
+
+Each residency mean covers two requests. Both models were unloaded afterward. Different background apps were open on each day, so this is not a controlled model ranking. The new mixed-action fixture also exposed an overly prescriptive 7B nudge and a misleading 14B index explanation; quality did not improve with the lower cap. See [the full report and raw answers](tasks/t26-tuning-results.md) for manual scoring, budget comparisons, and limitations. GPT and browser paint timing were outside this local tuning trial.
