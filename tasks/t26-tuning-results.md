@@ -4,7 +4,7 @@ Dates: 2026-11-16 (7B) and 2026-11-17 (14B). **Decision: retain the current prod
 
 ## Method
 
-The trial used the app context builder from `8e84b9a`, Ollama 0.40.16, and the installed Qwen2.5 7B Instruct Q4_K_M model. Hardware: GTX 1650 Ti, 4 GiB VRAM, approximately 16 GB RAM. ZCode and Codex remained open. No model download was performed.
+Both trials used the app context builder from `8e84b9a` and Ollama 0.40.16 with installed Q4_K_M models. Hardware: GTX 1650 Ti, 4 GiB VRAM, approximately 16 GB RAM. During the 7B run, ZCode and Codex remained open; ZCode was temporarily closed for 14B. No model download was performed.
 
 `tools/evaluate_t26.py` sends native Ollama requests using the app's exact instructions and exercise context. This measures provider behavior with app context; it does **not** exercise login, browser rendering, or the HTTP assistant route. First text means client receipt, not first visible browser paint. Public exercise prompts and answers are deliberately saved in [the raw results](evaluations/t26-qwen2.5-7b-instruct.json); no account data or credentials are used.
 
