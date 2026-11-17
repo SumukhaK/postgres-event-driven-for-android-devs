@@ -19,7 +19,7 @@ class FakeOllama:
         pass
 
     def get(self, path):
-        data = {"/api/tags": {"models": [{"name": "qwen2.5:7b-instruct"}]},
+        data = {"/api/tags": {"models": [{"name": name} for name in ("qwen2.5:7b-instruct", "qwen3:14b")]},
                 "/api/ps": {"models": self.resident}, "/api/version": {"version": "test"}}[path]
         return httpx.Response(200, json=data, request=httpx.Request("GET", "http://localhost" + path))
 
@@ -31,13 +31,17 @@ class FakeOllama:
         raise httpx.ReadTimeout("simulated inference failure")
 
 
-@pytest.mark.parametrize("free,resident", [(3 * 1024**3, []), (8 * 1024**3, [{"name": "another-model"}])])
-def test_preflight_never_loads_or_unloads_when_resources_unavailable(monkeypatch, tmp_path, free, resident):
+@pytest.mark.parametrize("model,free,resident", [
+    ("qwen2.5:7b-instruct", 3 * 1024**3, []),
+    ("qwen3:14b", 6 * 1024**3, []),
+    ("qwen2.5:7b-instruct", 8 * 1024**3, [{"name": "another-model"}]),
+])
+def test_preflight_never_loads_or_unloads_when_resources_unavailable(monkeypatch, tmp_path, model, free, resident):
     fake = FakeOllama(resident)
     monkeypatch.setattr(trial.httpx, "Client", lambda **kwargs: fake)
     monkeypatch.setattr(trial, "free_ram", lambda: free)
     with pytest.raises(RuntimeError):
-        trial.run("qwen2.5:7b-instruct", tmp_path / "result.json")
+        trial.run(model, tmp_path / "result.json")
     assert fake.posts == []
     assert not (tmp_path / "result.json").exists()
 

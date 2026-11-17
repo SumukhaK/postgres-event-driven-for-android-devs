@@ -5,6 +5,7 @@ Requires an already running Ollama. Never downloads or runs concurrent models.
 """
 import argparse
 import ctypes
+import hashlib
 import json
 import sys
 import threading
@@ -56,8 +57,11 @@ def run(model, destination):
         required_gib = 4 if model == "qwen2.5:7b-instruct" else 8
         if free_ram() < required_gib * 1024**3:
             raise RuntimeError(f"Less than {required_gib} GiB free RAM before loading; retry with more headroom")
+        sources = ["learning_app/assistant.py", "learning_app/static/seed.sql", "learning_app/static/exercises.json",
+                   *[f"src/{lesson}.md" for lesson, _, _ in CASES]]
         metadata = {"model": installed[model], "server": get("/api/version"),
-                    "base_commit": "8e84b9a", "sampling": {"seed": 42, "temperature": 0, "num_ctx": 4096},
+                    "source_sha256": {path: hashlib.sha256((ROOT / path).read_bytes()).hexdigest() for path in sources},
+                    "sampling": {"seed": 42, "temperature": 0, "num_ctx": 4096},
                     "note": "Native Ollama requests with app-built context; first text is client receipt, not browser paint."}
 
         def save():

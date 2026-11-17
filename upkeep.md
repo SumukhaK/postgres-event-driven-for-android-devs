@@ -12,12 +12,12 @@ Use test accounts/keys with a known spend limit. Never add credentials or learne
 ## Tutor accuracy and safety
 
 - [ ] Add a small, repeatable hint/nudge evaluation. Existing model scores cover five SQL and explanation prompts; they do not establish hint accuracy.
-- [ ] Consider a non-executing SQL check that compares generated table and column names with the active playground schema. Show a validation warning when identifiers do not match; never execute generated SQL as validation. Schema grounding is helpful but does not prove every query is valid.
+- [x] Add advisory SQL identifier checks without executing generated SQL (PR #3). Unsupported/ambiguous statements remain unchecked; this does not prove query correctness.
 - [ ] Keep the schema/reference-context behavior only while repeated checks show it helps without leaking worked answers into hint/nudge responses. The current 5-prompt comparison is exploratory, not a controlled model-only benchmark.
 
 ## Responsiveness and local inference
 
-- [ ] Stream partial answers where supported and measure time to first visible text separately from total answer time. The ChatGPT route currently consumes its provider stream but buffers it before responding to the browser.
+- [x] Stream partial answers and expose first-visible/total timing (PR #4). A combined live browser check remains in the task tracker.
 - [ ] Compare action-specific output limits for nudges, hints, explanations, and solutions. Track answer quality and truncation; the current 500-token cap already truncated one evaluated answer, so do not lower it globally without evidence.
 - [ ] Test Ollama model residency (`keep_alive`) only when useful on the target machine. Record cold/warm latency and memory use; residency can reduce model reload time while consuming RAM/VRAM.
 - [ ] For future comparisons, use the same prompts, model, hardware, and warm-up policy; report per-prompt results and median/p95 as well as the mean. Preserve the distinction between inference failures and answer-quality scores.

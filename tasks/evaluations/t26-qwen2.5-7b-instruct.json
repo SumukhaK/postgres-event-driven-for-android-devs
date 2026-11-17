@@ -1,0 +1,1170 @@
+{
+  "metadata": {
+    "model": {
+      "name": "qwen2.5:7b-instruct",
+      "model": "qwen2.5:7b-instruct",
+      "modified_at": "2026-07-24T08:40:55.9058547+05:30",
+      "size": 4683087332,
+      "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "qwen2",
+        "families": [
+          "qwen2"
+        ],
+        "parameter_size": "7.6B",
+        "quantization_level": "Q4_K_M",
+        "context_length": 32768,
+        "embedding_length": 3584,
+        "runner": "ggml"
+      },
+      "capabilities": [
+        "completion",
+        "tools"
+      ]
+    },
+    "server": {
+      "version": "0.40.16"
+    },
+    "base_commit": "8e84b9a",
+    "sampling": {
+      "seed": 42,
+      "temperature": 0,
+      "num_ctx": 4096
+    },
+    "note": "Native Ollama requests with app-built context; first text is client receipt, not browser paint.",
+    "ram_after_unload": 5758316544,
+    "resident_after_unload": []
+  },
+  "records": [
+    {
+      "phase": "residency",
+      "repeat": 0,
+      "variant": "cold",
+      "lesson": "07-indexes-explain",
+      "action": "explanation",
+      "prompt": "Explain the key idea behind this activity in beginner-friendly language.",
+      "limit": 500,
+      "ram_before": 5414236160,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 27881834200,
+        "load_duration": 11862415900,
+        "prompt_eval_duration": 3376827000,
+        "eval_duration": 12621009000,
+        "prompt_eval_count": 293,
+        "eval_count": 88
+      },
+      "seconds": 27.883,
+      "first_text_seconds": 15.267479700007243,
+      "answer": "This activity helps you understand how PostgreSQL decides which way to find the information you need. By running `EXPLAIN` on a query that looks for products in the \"Tea\" category, you can see the steps PostgreSQL takes. An index can make this process faster, like having a sorted list of products that makes it quicker to find teas. We'll look at the plan and see if using an index would help speed things up.",
+      "ram_min": 2254241792,
+      "ram_after": 2381037568,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:41:59.5627252+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "residency",
+      "repeat": 0,
+      "variant": "warm",
+      "lesson": "07-indexes-explain",
+      "action": "explanation",
+      "prompt": "Explain the key idea behind this activity in beginner-friendly language.",
+      "limit": 500,
+      "ram_before": 2381037568,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 13165980600,
+        "load_duration": 6875400,
+        "prompt_eval_duration": 141918000,
+        "eval_duration": 13011096000,
+        "prompt_eval_count": 293,
+        "eval_count": 88
+      },
+      "seconds": 13.167,
+      "first_text_seconds": 0.157116300004418,
+      "answer": "This activity helps you understand how PostgreSQL decides which way to find the information you need. By running `EXPLAIN` on a query that looks for products in the \"Tea\" category, you can see the steps PostgreSQL takes. An index can make this process faster, like having a sorted list of products that makes it quicker to find teas. We'll look at the plan and see if using an index would help speed things up.",
+      "ram_min": 2307256320,
+      "ram_after": 2352459776,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:42:12.7369835+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "residency",
+      "repeat": 1,
+      "variant": "cold",
+      "lesson": "07-indexes-explain",
+      "action": "explanation",
+      "prompt": "Explain the key idea behind this activity in beginner-friendly language.",
+      "limit": 500,
+      "ram_before": 5607710720,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 26157065700,
+        "load_duration": 10014555900,
+        "prompt_eval_duration": 3437378000,
+        "eval_duration": 12691269000,
+        "prompt_eval_count": 293,
+        "eval_count": 88
+      },
+      "seconds": 26.159,
+      "first_text_seconds": 13.468158999996376,
+      "answer": "This activity helps you understand how PostgreSQL decides which way to find the information you need. By running `EXPLAIN` on a query that looks for products in the \"Tea\" category, you can see the steps PostgreSQL takes. An index can make this process faster, like having a sorted list of products that makes it quicker to find teas. We'll look at the plan and see if using an index would help speed things up.",
+      "ram_min": 2364993536,
+      "ram_after": 2450898944,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:42:39.3711652+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "residency",
+      "repeat": 1,
+      "variant": "warm",
+      "lesson": "07-indexes-explain",
+      "action": "explanation",
+      "prompt": "Explain the key idea behind this activity in beginner-friendly language.",
+      "limit": 500,
+      "ram_before": 2450890752,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 13267749000,
+        "load_duration": 7522800,
+        "prompt_eval_duration": 168270000,
+        "eval_duration": 13083538000,
+        "prompt_eval_count": 293,
+        "eval_count": 88
+      },
+      "seconds": 13.269,
+      "first_text_seconds": 0.18658540000615176,
+      "answer": "This activity helps you understand how PostgreSQL decides which way to find the information you need. By running `EXPLAIN` on a query that looks for products in the \"Tea\" category, you can see the steps PostgreSQL takes. An index can make this process faster, like having a sorted list of products that makes it quicker to find teas. We'll look at the plan and see if using an index would help speed things up.",
+      "ram_min": 2450149376,
+      "ram_after": 2506149888,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:42:52.6454367+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "control",
+      "lesson": "03-select",
+      "action": "nudge",
+      "prompt": "Give one brief nudge that helps me decide what to try next without giving away the answer.",
+      "limit": 500,
+      "ram_before": 2506371072,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 6293173400,
+        "load_duration": 6474900,
+        "prompt_eval_duration": 1644468000,
+        "eval_duration": 4624599000,
+        "prompt_eval_count": 298,
+        "eval_count": 37
+      },
+      "seconds": 6.294,
+      "first_text_seconds": 1.6696892000036314,
+      "answer": "Try using the `SELECT` statement with `WHERE is_active = true` and `ORDER BY price DESC`. Remember to only include the `name` and `price` columns.",
+      "ram_min": 2435002368,
+      "ram_after": 2456637440,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:42:58.9693149+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "short_help",
+      "lesson": "03-select",
+      "action": "nudge",
+      "prompt": "Give one brief nudge that helps me decide what to try next without giving away the answer.",
+      "limit": 160,
+      "ram_before": 2456629248,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 5435984400,
+        "load_duration": 6971000,
+        "prompt_eval_duration": 149957000,
+        "eval_duration": 5271051000,
+        "prompt_eval_count": 298,
+        "eval_count": 37
+      },
+      "seconds": 5.438,
+      "first_text_seconds": 0.166551399990567,
+      "answer": "Try using the `SELECT` statement with `WHERE is_active = true` and `ORDER BY price DESC`. Remember to only include the `name` and `price` columns.",
+      "ram_min": 2441916416,
+      "ram_after": 2458865664,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:43:04.4123237+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "control",
+      "lesson": "05-joins",
+      "action": "hint",
+      "prompt": "Give me one specific hint, but leave the answer for me to work out.",
+      "limit": 500,
+      "ram_before": 2459271168,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 4613152300,
+        "load_duration": 8118900,
+        "prompt_eval_duration": 1718970000,
+        "eval_duration": 2878634000,
+        "prompt_eval_count": 307,
+        "eval_count": 25
+      },
+      "seconds": 4.615,
+      "first_text_seconds": 1.7358286999951815,
+      "answer": "Think about using an INNER JOIN between the customers and orders tables. How can you connect these tables using the customer_id?",
+      "ram_min": 2455805952,
+      "ram_after": 2459459584,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:43:09.0434568+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "short_help",
+      "lesson": "05-joins",
+      "action": "hint",
+      "prompt": "Give me one specific hint, but leave the answer for me to work out.",
+      "limit": 160,
+      "ram_before": 2459455488,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 3742012200,
+        "load_duration": 8505000,
+        "prompt_eval_duration": 145254000,
+        "eval_duration": 3580806000,
+        "prompt_eval_count": 307,
+        "eval_count": 25
+      },
+      "seconds": 3.743,
+      "first_text_seconds": 0.16270119999535382,
+      "answer": "Think about using an INNER JOIN between the customers and orders tables. How can you connect these tables using the customer_id?",
+      "ram_min": 2426187776,
+      "ram_after": 2426204160,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:43:12.7933309+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "control",
+      "lesson": "04-changing-data",
+      "action": "solution",
+      "prompt": "Show a complete worked solution to this activity and explain why it works.",
+      "limit": 500,
+      "ram_before": 2426208256,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 14939261300,
+        "load_duration": 7683600,
+        "prompt_eval_duration": 2285072000,
+        "eval_duration": 12639333000,
+        "prompt_eval_count": 358,
+        "eval_count": 88
+      },
+      "seconds": 14.941,
+      "first_text_seconds": 2.301364900005865,
+      "answer": "```sql\nUPDATE products \nSET stock = stock + 1 \nWHERE name = 'Samosa' \nRETURNING name, stock;\n```\n\nExplanation: This SQL command safely updates the stock for the product named 'Samosa' by increasing it by one. The `WHERE` clause ensures only the correct row is updated. The `RETURNING` clause returns the updated row, allowing you to verify the change immediately.",
+      "ram_min": 2306990080,
+      "ram_after": 2371686400,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:43:27.7544808+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "short_help",
+      "lesson": "04-changing-data",
+      "action": "solution",
+      "prompt": "Show a complete worked solution to this activity and explain why it works.",
+      "limit": 500,
+      "ram_before": 2371661824,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 14846973300,
+        "load_duration": 5786900,
+        "prompt_eval_duration": 149962000,
+        "eval_duration": 14683273000,
+        "prompt_eval_count": 358,
+        "eval_count": 94
+      },
+      "seconds": 14.848,
+      "first_text_seconds": 0.16676919999008533,
+      "answer": "```sql\nUPDATE products \nSET stock = stock + 1 \nWHERE name = 'Samosa' \nRETURNING name, stock;\n```\n\nExplanation: This SQL command safely increases the stock of 'Samosa' by 1. The `WHERE` clause ensures only the 'Samosa' row is updated. The `RETURNING` clause returns the updated `name` and `stock` values, allowing you to verify the change immediately.",
+      "ram_min": 2348617728,
+      "ram_after": 2415083520,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:43:42.6079024+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "control",
+      "lesson": "07-indexes-explain",
+      "action": "explanation",
+      "prompt": "Explain the key idea behind this activity in beginner-friendly language.",
+      "limit": 500,
+      "ram_before": 2415071232,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 12968154400,
+        "load_duration": 7786400,
+        "prompt_eval_duration": 153411000,
+        "eval_duration": 12783056000,
+        "prompt_eval_count": 293,
+        "eval_count": 88
+      },
+      "seconds": 12.97,
+      "first_text_seconds": 0.1872935999999754,
+      "answer": "This activity helps you understand how PostgreSQL decides which way to find the information you need. By running `EXPLAIN` on a query that looks for products in the \"Tea\" category, you can see the steps PostgreSQL takes. An index can make this process faster, like having a sorted list of products that makes it quicker to find teas. We'll look at the plan and see if using an index would help speed things up.",
+      "ram_min": 2397581312,
+      "ram_after": 2396778496,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:43:55.5837339+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "short_help",
+      "lesson": "07-indexes-explain",
+      "action": "explanation",
+      "prompt": "Explain the key idea behind this activity in beginner-friendly language.",
+      "limit": 500,
+      "ram_before": 2396712960,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 13704566500,
+        "load_duration": 14439700,
+        "prompt_eval_duration": 169831000,
+        "eval_duration": 13511045000,
+        "prompt_eval_count": 293,
+        "eval_count": 88
+      },
+      "seconds": 13.705,
+      "first_text_seconds": 0.19538289999763947,
+      "answer": "This activity helps you understand how PostgreSQL decides which way to find the information you need. By running `EXPLAIN` on a query that looks for products in the \"Tea\" category, you can see the steps PostgreSQL takes. An index can make this process faster, like having a sorted list of products that makes it quicker to find teas. We'll look at the plan and see if using an index would help speed things up.",
+      "ram_min": 2309836800,
+      "ram_after": 2449965056,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:44:09.2997226+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "control",
+      "lesson": "10-event-driven-thinking",
+      "action": "ask",
+      "prompt": "When is the outbox event saved, and what does the worker retry if publishing fails?",
+      "limit": 500,
+      "ram_before": 2450030592,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 6755087800,
+        "load_duration": 4999800,
+        "prompt_eval_duration": 2006509000,
+        "eval_duration": 4727116000,
+        "prompt_eval_count": 337,
+        "eval_count": 38
+      },
+      "seconds": 6.757,
+      "first_text_seconds": 2.0296464999992168,
+      "answer": "The outbox event is saved in the same transaction as the order placement. If publishing the event fails, a separate worker will retry the event publication without re-executing the order placement.",
+      "ram_min": 2434039808,
+      "ram_after": 2435497984,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:44:16.0772512+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "short_help",
+      "lesson": "10-event-driven-thinking",
+      "action": "ask",
+      "prompt": "When is the outbox event saved, and what does the worker retry if publishing fails?",
+      "limit": 500,
+      "ram_before": 2435629056,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 5724610900,
+        "load_duration": 10052300,
+        "prompt_eval_duration": 143329000,
+        "eval_duration": 5562597000,
+        "prompt_eval_count": 337,
+        "eval_count": 38
+      },
+      "seconds": 5.726,
+      "first_text_seconds": 0.16385230000014417,
+      "answer": "The outbox event is saved in the same transaction as the order placement. If publishing the event fails, a separate worker will retry the event publication without re-executing the order placement.",
+      "ram_min": 2423087104,
+      "ram_after": 2428080128,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:44:21.8114107+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "short_help",
+      "lesson": "03-select",
+      "action": "nudge",
+      "prompt": "Give one brief nudge that helps me decide what to try next without giving away the answer.",
+      "limit": 160,
+      "ram_before": 2427494400,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 6653574500,
+        "load_duration": 5946400,
+        "prompt_eval_duration": 1723933000,
+        "eval_duration": 4906770000,
+        "prompt_eval_count": 298,
+        "eval_count": 37
+      },
+      "seconds": 6.655,
+      "first_text_seconds": 1.7479335999960313,
+      "answer": "Try using the `SELECT` statement with `WHERE is_active = true` and `ORDER BY price DESC`. Remember to only include the `name` and `price` columns.",
+      "ram_min": 2258755584,
+      "ram_after": 2265817088,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:44:28.473962+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "control",
+      "lesson": "03-select",
+      "action": "nudge",
+      "prompt": "Give one brief nudge that helps me decide what to try next without giving away the answer.",
+      "limit": 500,
+      "ram_before": 2265649152,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 5715831000,
+        "load_duration": 10746700,
+        "prompt_eval_duration": 168195000,
+        "eval_duration": 5526669000,
+        "prompt_eval_count": 298,
+        "eval_count": 37
+      },
+      "seconds": 5.717,
+      "first_text_seconds": 0.19059939999715425,
+      "answer": "Try using the `SELECT` statement with `WHERE is_active = true` and `ORDER BY price DESC`. Remember to only include the `name` and `price` columns.",
+      "ram_min": 2210795520,
+      "ram_after": 2306007040,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:44:34.1995841+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "short_help",
+      "lesson": "05-joins",
+      "action": "hint",
+      "prompt": "Give me one specific hint, but leave the answer for me to work out.",
+      "limit": 160,
+      "ram_before": 2306007040,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 4618171000,
+        "load_duration": 6992000,
+        "prompt_eval_duration": 1653629000,
+        "eval_duration": 2949807000,
+        "prompt_eval_count": 307,
+        "eval_count": 25
+      },
+      "seconds": 4.62,
+      "first_text_seconds": 1.6698216000077082,
+      "answer": "Think about using an INNER JOIN between the customers and orders tables. How can you connect these tables using the customer_id?",
+      "ram_min": 2253000704,
+      "ram_after": 2256781312,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:44:38.8276881+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "control",
+      "lesson": "05-joins",
+      "action": "hint",
+      "prompt": "Give me one specific hint, but leave the answer for me to work out.",
+      "limit": 500,
+      "ram_before": 2256527360,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 3616760700,
+        "load_duration": 6760100,
+        "prompt_eval_duration": 144571000,
+        "eval_duration": 3459020000,
+        "prompt_eval_count": 307,
+        "eval_count": 25
+      },
+      "seconds": 3.619,
+      "first_text_seconds": 0.15984039999602828,
+      "answer": "Think about using an INNER JOIN between the customers and orders tables. How can you connect these tables using the customer_id?",
+      "ram_min": 2239516672,
+      "ram_after": 2243858432,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:44:42.4532571+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "short_help",
+      "lesson": "04-changing-data",
+      "action": "solution",
+      "prompt": "Show a complete worked solution to this activity and explain why it works.",
+      "limit": 500,
+      "ram_before": 2243833856,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 14123614000,
+        "load_duration": 7646300,
+        "prompt_eval_duration": 2183256000,
+        "eval_duration": 11925818000,
+        "prompt_eval_count": 358,
+        "eval_count": 88
+      },
+      "seconds": 14.125,
+      "first_text_seconds": 2.1990332000132184,
+      "answer": "```sql\nUPDATE products \nSET stock = stock + 1 \nWHERE name = 'Samosa' \nRETURNING name, stock;\n```\n\nExplanation: This SQL command safely updates the stock for the product named 'Samosa' by increasing it by one. The `WHERE` clause ensures only the correct row is updated. The `RETURNING` clause returns the updated row, allowing you to verify the change immediately.",
+      "ram_min": 2227322880,
+      "ram_after": 2255597568,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:44:56.5872839+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "control",
+      "lesson": "04-changing-data",
+      "action": "solution",
+      "prompt": "Show a complete worked solution to this activity and explain why it works.",
+      "limit": 500,
+      "ram_before": 2255585280,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 14943265100,
+        "load_duration": 7153600,
+        "prompt_eval_duration": 160071000,
+        "eval_duration": 14768351000,
+        "prompt_eval_count": 358,
+        "eval_count": 94
+      },
+      "seconds": 14.945,
+      "first_text_seconds": 0.17705199999909382,
+      "answer": "```sql\nUPDATE products \nSET stock = stock + 1 \nWHERE name = 'Samosa' \nRETURNING name, stock;\n```\n\nExplanation: This SQL command safely increases the stock of 'Samosa' by 1. The `WHERE` clause ensures only the 'Samosa' row is updated. The `RETURNING` clause returns the updated `name` and `stock` values, allowing you to verify the change immediately.",
+      "ram_min": 2103832576,
+      "ram_after": 2287706112,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:45:11.5414803+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "short_help",
+      "lesson": "07-indexes-explain",
+      "action": "explanation",
+      "prompt": "Explain the key idea behind this activity in beginner-friendly language.",
+      "limit": 500,
+      "ram_before": 2287693824,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 12997977900,
+        "load_duration": 10359900,
+        "prompt_eval_duration": 175234000,
+        "eval_duration": 12794696000,
+        "prompt_eval_count": 293,
+        "eval_count": 88
+      },
+      "seconds": 12.999,
+      "first_text_seconds": 0.20602209999924526,
+      "answer": "This activity helps you understand how PostgreSQL decides which way to find the information you need. By running `EXPLAIN` on a query that looks for products in the \"Tea\" category, you can see the steps PostgreSQL takes. An index can make this process faster, like having a sorted list of products that makes it quicker to find teas. We'll look at the plan and see if using an index would help speed things up.",
+      "ram_min": 2263040000,
+      "ram_after": 2568900608,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:45:24.5486606+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "control",
+      "lesson": "07-indexes-explain",
+      "action": "explanation",
+      "prompt": "Explain the key idea behind this activity in beginner-friendly language.",
+      "limit": 500,
+      "ram_before": 2568904704,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 12838120500,
+        "load_duration": 7069700,
+        "prompt_eval_duration": 147667000,
+        "eval_duration": 12676534000,
+        "prompt_eval_count": 293,
+        "eval_count": 88
+      },
+      "seconds": 12.84,
+      "first_text_seconds": 0.1636012000089977,
+      "answer": "This activity helps you understand how PostgreSQL decides which way to find the information you need. By running `EXPLAIN` on a query that looks for products in the \"Tea\" category, you can see the steps PostgreSQL takes. An index can make this process faster, like having a sorted list of products that makes it quicker to find teas. We'll look at the plan and see if using an index would help speed things up.",
+      "ram_min": 2562281472,
+      "ram_after": 2554875904,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:45:37.3966767+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "short_help",
+      "lesson": "10-event-driven-thinking",
+      "action": "ask",
+      "prompt": "When is the outbox event saved, and what does the worker retry if publishing fails?",
+      "limit": 500,
+      "ram_before": 2554281984,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 5757809800,
+        "load_duration": 10086400,
+        "prompt_eval_duration": 166981000,
+        "eval_duration": 5553093000,
+        "prompt_eval_count": 337,
+        "eval_count": 38
+      },
+      "seconds": 5.759,
+      "first_text_seconds": 0.20620849999249913,
+      "answer": "The outbox event is saved in the same transaction as the order placement. If publishing the event fails, a separate worker will retry the event publication without re-executing the order placement.",
+      "ram_min": 2546290688,
+      "ram_after": 2558853120,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:45:43.1677435+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "control",
+      "lesson": "10-event-driven-thinking",
+      "action": "ask",
+      "prompt": "When is the outbox event saved, and what does the worker retry if publishing fails?",
+      "limit": 500,
+      "ram_before": 2558840832,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 5612891100,
+        "load_duration": 6890500,
+        "prompt_eval_duration": 144101000,
+        "eval_duration": 5454473000,
+        "prompt_eval_count": 337,
+        "eval_count": 38
+      },
+      "seconds": 5.614,
+      "first_text_seconds": 0.16098509999574162,
+      "answer": "The outbox event is saved in the same transaction as the order placement. If publishing the event fails, a separate worker will retry the event publication without re-executing the order placement.",
+      "ram_min": 2524147712,
+      "ram_after": 2523856896,
+      "resident": [
+        {
+          "name": "qwen2.5:7b-instruct",
+          "model": "qwen2.5:7b-instruct",
+          "size": 5152041859,
+          "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-16T15:45:48.7916054+05:30",
+          "size_vram": 2313546628,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    }
+  ]
+}
