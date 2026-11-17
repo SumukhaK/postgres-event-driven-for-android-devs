@@ -1,7 +1,8 @@
 """Controlled local tuning trial; saves public exercise answers for manual review.
 
 Run from the repository root: python tools/evaluate_t26.py --model qwen2.5:7b-instruct
-Requires an already running Ollama. Never downloads or runs concurrent models.
+Requires Windows and an already running Ollama. Never downloads models;
+run exclusively, with no other clients loading models during the trial.
 """
 import argparse
 import ctypes
@@ -93,6 +94,7 @@ def run(model, destination):
                    "action": action, "prompt": prompt, "limit": limit, "ram_before": free_ram()}
             memory = [row["ram_before"]]
             stop = threading.Event()
+            # shortcut: sampled RAM is not an allocation cap; use OS limits for unattended trials.
             def monitor():
                 while not stop.wait(0.5):
                     memory.append(free_ram())

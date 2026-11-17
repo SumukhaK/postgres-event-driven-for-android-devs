@@ -11,15 +11,16 @@ Use test accounts/keys with a known spend limit. Never add credentials or learne
 
 ## Tutor accuracy and safety
 
-- [ ] Add a small, repeatable hint/nudge evaluation. Existing model scores cover five SQL and explanation prompts; they do not establish hint accuracy.
+- [ ] Broaden the repeatable hint/nudge evaluation beyond T26's one case each. 7B's nudge was too prescriptive; 14B's hints were appropriate in this small fixture. Neither establishes general hint accuracy.
+- [ ] Ground EXPLAIN explanations in the exercise's table-size/selectivity guidance without exposing solutions to hints. T26's 14B answers incorrectly implied full-table scans are inherently slow under both output limits; add regression cases before accepting a fix.
 - [x] Add advisory SQL identifier checks without executing generated SQL (PR #3). Unsupported/ambiguous statements remain unchecked; this does not prove query correctness.
 - [ ] Keep the schema/reference-context behavior only while repeated checks show it helps without leaking worked answers into hint/nudge responses. The current 5-prompt comparison is exploratory, not a controlled model-only benchmark.
 
 ## Responsiveness and local inference
 
 - [x] Stream partial answers and expose first-visible/total timing (PR #4). A combined live browser check remains in the task tracker.
-- [ ] Compare action-specific output limits for nudges, hints, explanations, and solutions. Track answer quality and truncation; the current 500-token cap already truncated one evaluated answer, so do not lower it globally without evidence.
-- [ ] Test Ollama model residency (`keep_alive`) only when useful on the target machine. Record cold/warm latency and memory use; residency can reduce model reload time while consuming RAM/VRAM.
+- [x] Compare a 160-token hint/nudge ceiling against 500, with explanation/solution/ask unchanged controls. T26 completed 24 requests per local model with no truncation; the lower ceiling did not bind or help. Retain 500. See [results and quality review](tasks/t26-tuning-results.md).
+- [x] Measure unloaded versus immediate resident reuse: mean savings of 13.803 s (7B) and 26.829 s (14B), including prompt-cache effects. Keep server-controlled residency; longer idle timeouts were not tested and may occupy scarce RAM unnecessarily.
 - [ ] For future comparisons, use the same prompts, model, hardware, and warm-up policy; report per-prompt results and median/p95 as well as the mean. Preserve the distinction between inference failures and answer-quality scores.
 
 ## Build and operations

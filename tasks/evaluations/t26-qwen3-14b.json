@@ -1,0 +1,1180 @@
+{
+  "metadata": {
+    "model": {
+      "name": "qwen3:14b",
+      "model": "qwen3:14b",
+      "modified_at": "2026-11-14T17:43:28.885225+05:30",
+      "size": 9276198565,
+      "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "qwen3",
+        "families": [
+          "qwen3"
+        ],
+        "parameter_size": "14.8B",
+        "quantization_level": "Q4_K_M",
+        "context_length": 40960,
+        "embedding_length": 5120,
+        "runner": "ggml"
+      },
+      "capabilities": [
+        "completion",
+        "tools",
+        "thinking"
+      ]
+    },
+    "server": {
+      "version": "0.40.16"
+    },
+    "source_sha256": {
+      "learning_app/assistant.py": "3d93fb4094c23c409dc5d44acb3159aea96b24c88d33d09f923158bce3cdf5e7",
+      "learning_app/static/seed.sql": "97c3ae2a64941543c464e2d6d48fe0706f9c949b46aa250fd449cf2985c27f17",
+      "learning_app/static/exercises.json": "c95849fdb16488a5ae6b2c2d6ee6d92fa70a9eefcae88e45e60e2ab02ec193d6",
+      "src/03-select.md": "715871b7afcc7ce922407bfe9ff4f5acb07449f836b653611ebf51d5a7c8e84f",
+      "src/05-joins.md": "89e9dd7307ccb02af3ae387f343e7a43c7a7d5bd11a2a616cd590262bd2d467c",
+      "src/04-changing-data.md": "0063a0898fab8e10200f1402ba992f523bd7205067b48a9ad13c8cc1346b07fe",
+      "src/07-indexes-explain.md": "6a04a993068fb22b1f6b1f3c71f6746ad472040f6be40e31afa0c4fec6f77fd7",
+      "src/10-event-driven-thinking.md": "752c07dce0d80a99e27e60ed2d62e2c0f3caff885a42f5ab71286d5c49b08105"
+    },
+    "sampling": {
+      "seed": 42,
+      "temperature": 0,
+      "num_ctx": 4096
+    },
+    "note": "Native Ollama requests with app-built context; first text is client receipt, not browser paint.",
+    "ram_after_unload": 10746728448,
+    "resident_after_unload": []
+  },
+  "records": [
+    {
+      "phase": "residency",
+      "repeat": 0,
+      "variant": "cold",
+      "lesson": "07-indexes-explain",
+      "action": "explanation",
+      "prompt": "Explain the key idea behind this activity in beginner-friendly language.",
+      "limit": 500,
+      "ram_before": 9358499840,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 48330383000,
+        "load_duration": 21368240600,
+        "prompt_eval_duration": 7823705000,
+        "eval_duration": 19111719000,
+        "prompt_eval_count": 301,
+        "eval_count": 54
+      },
+      "seconds": 48.332,
+      "first_text_seconds": 29.22745579999173,
+      "answer": "The key idea is to understand how PostgreSQL finds data quickly. By using EXPLAIN, you can see if PostgreSQL uses an index to find products in the Tea category fast or scans the whole table slowly. This helps you make your queries faster by knowing when indexes help.",
+      "ram_min": 1620033536,
+      "ram_after": 1752903680,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:54:28.3635521+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "residency",
+      "repeat": 0,
+      "variant": "warm",
+      "lesson": "07-indexes-explain",
+      "action": "explanation",
+      "prompt": "Explain the key idea behind this activity in beginner-friendly language.",
+      "limit": 500,
+      "ram_before": 1752825856,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 19817979300,
+        "load_duration": 11005500,
+        "prompt_eval_duration": 413814000,
+        "eval_duration": 19386142000,
+        "prompt_eval_count": 301,
+        "eval_count": 54
+      },
+      "seconds": 19.82,
+      "first_text_seconds": 0.4340555999951903,
+      "answer": "The key idea is to understand how PostgreSQL finds data quickly. By using EXPLAIN, you can see if PostgreSQL uses an index to find products in the Tea category fast or scans the whole table slowly. This helps you make your queries faster by knowing when indexes help.",
+      "ram_min": 1708355584,
+      "ram_after": 1868566528,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:54:48.1903314+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "residency",
+      "repeat": 1,
+      "variant": "cold",
+      "lesson": "07-indexes-explain",
+      "action": "explanation",
+      "prompt": "Explain the key idea behind this activity in beginner-friendly language.",
+      "limit": 500,
+      "ram_before": 10292985856,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 45171525100,
+        "load_duration": 18696076000,
+        "prompt_eval_duration": 7647588000,
+        "eval_duration": 18814688000,
+        "prompt_eval_count": 301,
+        "eval_count": 54
+      },
+      "seconds": 45.173,
+      "first_text_seconds": 26.358485899982043,
+      "answer": "The key idea is to understand how PostgreSQL finds data quickly. By using EXPLAIN, you can see if PostgreSQL uses an index to find products in the Tea category fast or scans the whole table slowly. This helps you make your queries faster by knowing when indexes help.",
+      "ram_min": 2024296448,
+      "ram_after": 2046242816,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:55:34.2914739+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "residency",
+      "repeat": 1,
+      "variant": "warm",
+      "lesson": "07-indexes-explain",
+      "action": "explanation",
+      "prompt": "Explain the key idea behind this activity in beginner-friendly language.",
+      "limit": 500,
+      "ram_before": 2047811584,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 20026534700,
+        "load_duration": 12553800,
+        "prompt_eval_duration": 375303000,
+        "eval_duration": 19632034000,
+        "prompt_eval_count": 301,
+        "eval_count": 54
+      },
+      "seconds": 20.028,
+      "first_text_seconds": 0.3968200999952387,
+      "answer": "The key idea is to understand how PostgreSQL finds data quickly. By using EXPLAIN, you can see if PostgreSQL uses an index to find products in the Tea category fast or scans the whole table slowly. This helps you make your queries faster by knowing when indexes help.",
+      "ram_min": 1991458816,
+      "ram_after": 2012954624,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:55:54.326172+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "control",
+      "lesson": "03-select",
+      "action": "nudge",
+      "prompt": "Give one brief nudge that helps me decide what to try next without giving away the answer.",
+      "limit": 500,
+      "ram_before": 2010611712,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 12424307200,
+        "load_duration": 57674300,
+        "prompt_eval_duration": 3718070000,
+        "eval_duration": 8640712000,
+        "prompt_eval_count": 306,
+        "eval_count": 25
+      },
+      "seconds": 12.426,
+      "first_text_seconds": 3.7851377000042703,
+      "answer": "Think about the conditions needed to filter active products and set the correct sorting order. What clauses can help you achieve this?",
+      "ram_min": 1904779264,
+      "ram_after": 1920983040,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:56:06.7821725+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "short_help",
+      "lesson": "03-select",
+      "action": "nudge",
+      "prompt": "Give one brief nudge that helps me decide what to try next without giving away the answer.",
+      "limit": 160,
+      "ram_before": 1920995328,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 9879965400,
+        "load_duration": 49023900,
+        "prompt_eval_duration": 389754000,
+        "eval_duration": 9383269000,
+        "prompt_eval_count": 306,
+        "eval_count": 27
+      },
+      "seconds": 9.882,
+      "first_text_seconds": 0.49905139999464154,
+      "answer": "Think about the conditions needed to filter active products and sort them by price in descending order. What SQL clauses can help with that?",
+      "ram_min": 1885200384,
+      "ram_after": 2017964032,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:56:16.6693275+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "control",
+      "lesson": "05-joins",
+      "action": "hint",
+      "prompt": "Give me one specific hint, but leave the answer for me to work out.",
+      "limit": 500,
+      "ram_before": 2017931264,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 14954398300,
+        "load_duration": 7325600,
+        "prompt_eval_duration": 4284904000,
+        "eval_duration": 10633667000,
+        "prompt_eval_count": 315,
+        "eval_count": 30
+      },
+      "seconds": 14.955,
+      "first_text_seconds": 4.3216135000111535,
+      "answer": "Use `COUNT(*)` with a `JOIN` to count the number of orders per customer, and make sure to group the results by customer.",
+      "ram_min": 1928237056,
+      "ram_after": 2009669632,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:56:31.6325649+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "short_help",
+      "lesson": "05-joins",
+      "action": "hint",
+      "prompt": "Give me one specific hint, but leave the answer for me to work out.",
+      "limit": 160,
+      "ram_before": 2009669632,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 10470452200,
+        "load_duration": 8092700,
+        "prompt_eval_duration": 395649000,
+        "eval_duration": 10059142000,
+        "prompt_eval_count": 315,
+        "eval_count": 29
+      },
+      "seconds": 10.472,
+      "first_text_seconds": 0.41329130000667647,
+      "answer": "Use `COUNT(*)` with a `JOIN` between the `customers` and `orders` tables, and group the results by customer.",
+      "ram_min": 1974841344,
+      "ram_after": 2010988544,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:56:42.1111256+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "control",
+      "lesson": "04-changing-data",
+      "action": "solution",
+      "prompt": "Show a complete worked solution to this activity and explain why it works.",
+      "limit": 500,
+      "ram_before": 2011512832,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 36723676400,
+        "load_duration": 7141900,
+        "prompt_eval_duration": 4782766000,
+        "eval_duration": 31926611000,
+        "prompt_eval_count": 366,
+        "eval_count": 89
+      },
+      "seconds": 36.725,
+      "first_text_seconds": 4.79820709998603,
+      "answer": "```sql\nUPDATE products \nSET stock = stock + 1 \nWHERE name = 'Samosa' \nRETURNING name, stock;\n```\n\nThis query safely increases the `stock` of the product named 'Samosa' by 1. The `WHERE` clause ensures only the 'Samosa' row is updated, and `RETURNING` shows the updated name and stock, confirming the change was applied correctly.",
+      "ram_min": 1843810304,
+      "ram_after": 1922469888,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:57:18.8538834+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "short_help",
+      "lesson": "04-changing-data",
+      "action": "solution",
+      "prompt": "Show a complete worked solution to this activity and explain why it works.",
+      "limit": 500,
+      "ram_before": 1922441216,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 35600700400,
+        "load_duration": 6499600,
+        "prompt_eval_duration": 371305000,
+        "eval_duration": 35215268000,
+        "prompt_eval_count": 366,
+        "eval_count": 96
+      },
+      "seconds": 35.603,
+      "first_text_seconds": 0.3883723999897484,
+      "answer": "```sql\nUPDATE products \nSET stock = stock + 1 \nWHERE name = 'Samosa' \nRETURNING name, stock;\n```\n\nThis query increases the `stock` of the product named 'Samosa' by 1 and returns the updated `name` and `stock` values. The `WHERE` clause ensures only the 'Samosa' row is updated, and `RETURNING` confirms the change by showing the updated row immediately.",
+      "ram_min": 1843970048,
+      "ram_after": 1898893312,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:57:54.4627631+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "control",
+      "lesson": "07-indexes-explain",
+      "action": "explanation",
+      "prompt": "Explain the key idea behind this activity in beginner-friendly language.",
+      "limit": 500,
+      "ram_before": 1898000384,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 21809112900,
+        "load_duration": 7607200,
+        "prompt_eval_duration": 3652078000,
+        "eval_duration": 18092453000,
+        "prompt_eval_count": 301,
+        "eval_count": 52
+      },
+      "seconds": 21.811,
+      "first_text_seconds": 3.7187690999999177,
+      "answer": "The key idea is to understand how PostgreSQL finds data quickly. By using EXPLAIN, you can see if PostgreSQL uses an index to find products in the Tea category fast or scans the whole table slowly. This helps you improve query performance by creating useful indexes.",
+      "ram_min": 1776640000,
+      "ram_after": 1854402560,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:58:16.2914348+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "short_help",
+      "lesson": "07-indexes-explain",
+      "action": "explanation",
+      "prompt": "Explain the key idea behind this activity in beginner-friendly language.",
+      "limit": 500,
+      "ram_before": 1854369792,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 19607219100,
+        "load_duration": 7234300,
+        "prompt_eval_duration": 316996000,
+        "eval_duration": 19274979000,
+        "prompt_eval_count": 301,
+        "eval_count": 54
+      },
+      "seconds": 19.609,
+      "first_text_seconds": 0.33412340001086704,
+      "answer": "The key idea is to understand how PostgreSQL finds data quickly. By using EXPLAIN, you can see if PostgreSQL uses an index to find products in the Tea category fast or scans the whole table slowly. This helps you make your queries faster by knowing when indexes help.",
+      "ram_min": 1633775616,
+      "ram_after": 1937084416,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:58:35.9073694+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "control",
+      "lesson": "10-event-driven-thinking",
+      "action": "ask",
+      "prompt": "When is the outbox event saved, and what does the worker retry if publishing fails?",
+      "limit": 500,
+      "ram_before": 1938489344,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 18902413800,
+        "load_duration": 6478000,
+        "prompt_eval_duration": 4809866000,
+        "eval_duration": 14036400000,
+        "prompt_eval_count": 345,
+        "eval_count": 41
+      },
+      "seconds": 18.904,
+      "first_text_seconds": 4.8671828000224195,
+      "answer": "The outbox event is saved in the same transaction as the order, ensuring both are committed together. If publishing fails, the worker retries the event delivery without repeating the order write, preserving data consistency.",
+      "ram_min": 1900679168,
+      "ram_after": 1944772608,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:58:54.829839+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 0,
+      "variant": "short_help",
+      "lesson": "10-event-driven-thinking",
+      "action": "ask",
+      "prompt": "When is the outbox event saved, and what does the worker retry if publishing fails?",
+      "limit": 500,
+      "ram_before": 1944846336,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 15239513200,
+        "load_duration": 8326400,
+        "prompt_eval_duration": 451079000,
+        "eval_duration": 14772482000,
+        "prompt_eval_count": 345,
+        "eval_count": 41
+      },
+      "seconds": 15.241,
+      "first_text_seconds": 0.4685172000026796,
+      "answer": "The outbox event is saved in the same transaction as the order, ensuring both are committed together. If publishing fails, the worker retries the event delivery without repeating the order write, preserving data consistency.",
+      "ram_min": 1794285568,
+      "ram_after": 1898729472,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:59:10.076939+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "short_help",
+      "lesson": "03-select",
+      "action": "nudge",
+      "prompt": "Give one brief nudge that helps me decide what to try next without giving away the answer.",
+      "limit": 160,
+      "ram_before": 1894981632,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 12336118100,
+        "load_duration": 10968000,
+        "prompt_eval_duration": 3621243000,
+        "eval_duration": 8671461000,
+        "prompt_eval_count": 306,
+        "eval_count": 25
+      },
+      "seconds": 12.337,
+      "first_text_seconds": 3.6655027999950107,
+      "answer": "Think about the conditions needed to filter active products and set the correct sorting order. What clauses can help you achieve this?",
+      "ram_min": 1839980544,
+      "ram_after": 2134130688,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:59:22.4218472+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "control",
+      "lesson": "03-select",
+      "action": "nudge",
+      "prompt": "Give one brief nudge that helps me decide what to try next without giving away the answer.",
+      "limit": 500,
+      "ram_before": 2134089728,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 9687388900,
+        "load_duration": 82447000,
+        "prompt_eval_duration": 300549000,
+        "eval_duration": 9296072000,
+        "prompt_eval_count": 306,
+        "eval_count": 27
+      },
+      "seconds": 9.689,
+      "first_text_seconds": 0.39407460001530126,
+      "answer": "Think about the conditions needed to filter active products and sort them by price in descending order. What SQL clauses can help with that?",
+      "ram_min": 2129911808,
+      "ram_after": 2134306816,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:59:32.1179404+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "short_help",
+      "lesson": "05-joins",
+      "action": "hint",
+      "prompt": "Give me one specific hint, but leave the answer for me to work out.",
+      "limit": 160,
+      "ram_before": 2134265856,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 14081593200,
+        "load_duration": 8685400,
+        "prompt_eval_duration": 4192781000,
+        "eval_duration": 9872247000,
+        "prompt_eval_count": 315,
+        "eval_count": 30
+      },
+      "seconds": 14.083,
+      "first_text_seconds": 4.210714500019094,
+      "answer": "Use `COUNT(*)` with a `JOIN` to count the number of orders per customer, and make sure to group the results by customer.",
+      "ram_min": 2088525824,
+      "ram_after": 2123345920,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:59:46.209358+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "control",
+      "lesson": "05-joins",
+      "action": "hint",
+      "prompt": "Give me one specific hint, but leave the answer for me to work out.",
+      "limit": 500,
+      "ram_before": 2123309056,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 10488785900,
+        "load_duration": 6532900,
+        "prompt_eval_duration": 387080000,
+        "eval_duration": 10086167000,
+        "prompt_eval_count": 315,
+        "eval_count": 29
+      },
+      "seconds": 10.49,
+      "first_text_seconds": 0.40460389998042956,
+      "answer": "Use `COUNT(*)` with a `JOIN` between the `customers` and `orders` tables, and group the results by customer.",
+      "ram_min": 2093064192,
+      "ram_after": 2107416576,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T12:59:56.7077874+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "short_help",
+      "lesson": "04-changing-data",
+      "action": "solution",
+      "prompt": "Show a complete worked solution to this activity and explain why it works.",
+      "limit": 500,
+      "ram_before": 2107408384,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 35848809900,
+        "load_duration": 6504500,
+        "prompt_eval_duration": 4871057000,
+        "eval_duration": 30964284000,
+        "prompt_eval_count": 366,
+        "eval_count": 89
+      },
+      "seconds": 35.85,
+      "first_text_seconds": 4.886072199995397,
+      "answer": "```sql\nUPDATE products \nSET stock = stock + 1 \nWHERE name = 'Samosa' \nRETURNING name, stock;\n```\n\nThis query safely increases the `stock` of the product named 'Samosa' by 1. The `WHERE` clause ensures only the 'Samosa' row is updated, and `RETURNING` shows the updated name and stock, confirming the change was applied correctly.",
+      "ram_min": 1984258048,
+      "ram_after": 2115969024,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T13:00:32.565364+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "control",
+      "lesson": "04-changing-data",
+      "action": "solution",
+      "prompt": "Show a complete worked solution to this activity and explain why it works.",
+      "limit": 500,
+      "ram_before": 2115952640,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 35371903500,
+        "load_duration": 6613500,
+        "prompt_eval_duration": 382241000,
+        "eval_duration": 34976004000,
+        "prompt_eval_count": 366,
+        "eval_count": 96
+      },
+      "seconds": 35.373,
+      "first_text_seconds": 0.397710699995514,
+      "answer": "```sql\nUPDATE products \nSET stock = stock + 1 \nWHERE name = 'Samosa' \nRETURNING name, stock;\n```\n\nThis query increases the `stock` of the product named 'Samosa' by 1 and returns the updated `name` and `stock` values. The `WHERE` clause ensures only the 'Samosa' row is updated, and `RETURNING` confirms the change by showing the updated row immediately.",
+      "ram_min": 1988558848,
+      "ram_after": 2096742400,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T13:01:07.9465449+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "short_help",
+      "lesson": "07-indexes-explain",
+      "action": "explanation",
+      "prompt": "Explain the key idea behind this activity in beginner-friendly language.",
+      "limit": 500,
+      "ram_before": 2096705536,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 21456720100,
+        "load_duration": 7855400,
+        "prompt_eval_duration": 3741451000,
+        "eval_duration": 17699495000,
+        "prompt_eval_count": 301,
+        "eval_count": 52
+      },
+      "seconds": 21.458,
+      "first_text_seconds": 3.7582996000128333,
+      "answer": "The key idea is to understand how PostgreSQL finds data quickly. By using EXPLAIN, you can see if PostgreSQL uses an index to find products in the Tea category fast or scans the whole table slowly. This helps you improve query performance by creating useful indexes.",
+      "ram_min": 2006482944,
+      "ram_after": 2746331136,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T13:01:29.4115076+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "control",
+      "lesson": "07-indexes-explain",
+      "action": "explanation",
+      "prompt": "Explain the key idea behind this activity in beginner-friendly language.",
+      "limit": 500,
+      "ram_before": 2746277888,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 18944437300,
+        "load_duration": 6363000,
+        "prompt_eval_duration": 375406000,
+        "eval_duration": 18526940000,
+        "prompt_eval_count": 301,
+        "eval_count": 54
+      },
+      "seconds": 18.946,
+      "first_text_seconds": 0.4186335999984294,
+      "answer": "The key idea is to understand how PostgreSQL finds data quickly. By using EXPLAIN, you can see if PostgreSQL uses an index to find products in the Tea category fast or scans the whole table slowly. This helps you make your queries faster by knowing when indexes help.",
+      "ram_min": 2706526208,
+      "ram_after": 2726998016,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T13:01:48.3661101+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "short_help",
+      "lesson": "10-event-driven-thinking",
+      "action": "ask",
+      "prompt": "When is the outbox event saved, and what does the worker retry if publishing fails?",
+      "limit": 500,
+      "ram_before": 2727067648,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 18342139100,
+        "load_duration": 7573800,
+        "prompt_eval_duration": 4738057000,
+        "eval_duration": 13588882000,
+        "prompt_eval_count": 345,
+        "eval_count": 41
+      },
+      "seconds": 18.344,
+      "first_text_seconds": 4.754186900012428,
+      "answer": "The outbox event is saved in the same transaction as the order, ensuring both are committed together. If publishing fails, the worker retries the event delivery without repeating the order write, preserving data consistency.",
+      "ram_min": 2720108544,
+      "ram_after": 2722021376,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T13:02:06.7173453+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    },
+    {
+      "phase": "budget",
+      "repeat": 1,
+      "variant": "control",
+      "lesson": "10-event-driven-thinking",
+      "action": "ask",
+      "prompt": "When is the outbox event saved, and what does the worker retry if publishing fails?",
+      "limit": 500,
+      "ram_before": 2722144256,
+      "outcome": "completed",
+      "metrics": {
+        "done_reason": "stop",
+        "total_duration": 14036992900,
+        "load_duration": 9169300,
+        "prompt_eval_duration": 373300000,
+        "eval_duration": 13646639000,
+        "prompt_eval_count": 345,
+        "eval_count": 41
+      },
+      "seconds": 14.038,
+      "first_text_seconds": 0.39152580001973547,
+      "answer": "The outbox event is saved in the same transaction as the order, ensuring both are committed together. If publishing fails, the worker retries the event delivery without repeating the order write, preserving data consistency.",
+      "ram_min": 2710597632,
+      "ram_after": 2714722304,
+      "resident": [
+        {
+          "name": "qwen3:14b",
+          "model": "qwen3:14b",
+          "size": 10166143547,
+          "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen3",
+            "families": [
+              "qwen3"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M"
+          },
+          "expires_at": "2026-11-17T13:02:20.7636649+05:30",
+          "size_vram": 2214990970,
+          "context_length": 4096,
+          "runner": "llamacpp"
+        }
+      ]
+    }
+  ]
+}
