@@ -75,3 +75,15 @@ T28 can be implemented alongside isolated T29 parser research/prototype work. T2
 - Add focused regression tests for each behavior and run the relevant app/frontend suites plus builds before each task is marked done.
 - Review each PR against its acceptance criteria, inspect logs for sensitive-content leakage, and verify the final combined learner flow locally before calling the phase complete.
 - Do not enable remote telemetry, public hosting, or a larger local model as part of this phase.
+
+## Phase 7 · Close remaining local reliability work (2026-11-17)
+
+Live provider checks are explicitly skipped at the user's request. No cloud credentials, provider consent, paid calls, public backend deployment, or new model downloads are required.
+
+Three isolated branches start from main at `0c630de` and can progress in parallel:
+
+1. **T30 · Tutor guidance accuracy** (`codex/tutor-guidance-quality`). Fix the source of the misleading EXPLAIN guidance and overly explicit nudges, using existing exercise references while protecting hint/solution boundaries. Expand repeatable hint/nudge cases across lessons. Acceptance: focused regression tests cover table size/selectivity and no worked-answer reference in hint/nudge context; document fixture and quality limits without inventing model scores. Files: assistant context, provider tests, evaluation fixtures/report. A bounded 7B-only live local check may follow once resource headroom is verified; no simultaneous inference or app closures without need.
+2. **T31 · Combined browser verification** (`codex/studio-browser-verification`). Exercise a real local app and browser with a deterministic local provider stub: account/progress persistence, incremental answers, final SQL warning, sanitized mid-stream failure, correlation/timings, and no sensitive logging. Acceptance: evidence of partial output before completion, progress retained across login/reload, warnings and failure recovery visible, logs free of synthetic secrets/prompt markers. Own browser test harness and report; coordinate production fixes with T30 if needed. No live cloud requests.
+3. **T32 · CI and Pages verification** (`codex/studio-ci-pages`). Add least-privilege CI for Python app tests, JS sandbox/exercise tests, frontend/course builds, and PostgreSQL demo tests against an isolated PostgreSQL service with a `_test` database. Verify the real Pages configuration and live course URL before updating README wording. Acceptance: all jobs pass on GitHub; no destructive test target can be a real database; Pages remains static only. Own workflows, CI docs and README Pages wording.
+
+Parent owns tracker/upkeep integration and PR reviews. Branches do not edit the shared tracker in parallel. Each implementation branch gets a focused commit, push, PR, separate review, and merge only after its relevant checks pass. After merges, verify the combined tree and update completion checkpoints with explicit remaining limits. Existing unfinished work and historical reports are preserved.

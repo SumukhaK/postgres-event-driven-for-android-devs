@@ -85,3 +85,12 @@ Research and the implementation order are in [`ai-assistant-quality-and-latency.
 - [x] For 7B, review correctness, usefulness, unsupported claims, hint answer leakage, truncation, first-text receipt, total time, provider stage timings, and RAM/residency. Browser paint latency is outside this native API trial.
 - [x] Run and review the same 24-request fixture for 14B after authorized app cleanup. Both models were unloaded after their trials, never loaded together; ZCode and sync clients were restored afterward.
 - [x] Record keep/reject decisions and self-review the complete diff for PR #6. Four guard tests and raw-result consistency checks pass; production defaults are retained. The PR records the additional parallel review and remote merge outcome.
+
+## Phase 7 · Remaining local work · 2026-11-17
+
+Live cloud-provider checks are **skipped by user request**, not verified. Implementation and acceptance criteria are in the Phase 7 plan.
+
+- [ ] **T30 · Correct tutor guidance and broaden hint/nudge checks** — exercise-specific EXPLAIN guidance, gentle nudges, answer-reference boundaries, repeatable cross-lesson cases. Branch `codex/tutor-guidance-quality`.
+- [ ] **T31 · Verify the combined browser flow** — real local app/browser with deterministic local provider; streaming, SQL warnings, sanitized errors, progress persistence, and privacy-safe diagnostics. Branch `codex/studio-browser-verification`.
+- [ ] **T32 · Automate CI and verify Pages documentation** — app/frontend/course checks plus isolated PostgreSQL demo tests; verify actual Pages settings and deployed URL. Branch `codex/studio-ci-pages`.
+- [ ] **T33 · Review, merge, and verify integration** — review each PR, resolve findings, require relevant checks, merge only to this repository, and reconcile tracker/upkeep with observed results.
