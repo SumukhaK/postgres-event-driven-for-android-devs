@@ -4,6 +4,8 @@ This is a follow-up list, not a release blocker. The current goal remains a loca
 
 ## Provider verification
 
+**Skipped for the current work by user request (2026-11-17).** The unchecked live-provider items below remain optional future work, not part of the current completion gate.
+
 - [ ] Run one live, consented end-to-end check with an Anthropic Console key and one with an OpenCode Console key: connect, discover models, ask about a lesson, receive an answer, disconnect. Current coverage uses mocked provider responses; the documented live evaluation used ChatGPT plan access and local Ollama models.
 - [ ] If OpenAI API-key support will be offered separately from ChatGPT plan access, run the same live flow with an OpenAI API key and confirm its billing disclosure is clear.
 
