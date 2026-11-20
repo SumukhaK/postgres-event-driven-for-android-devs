@@ -21,4 +21,9 @@ Pages serves the static course. This verification does not establish a public De
 
 ## Validation
 
-GitHub job results will be recorded after the PR run. No local Docker/WSL startup or live provider/model request is part of this task.
+**PR #8 CI run ([44677523843](https://github.com/SumukhaK/postgres-event-driven-for-android-devs/actions/runs/44677523843), 2026-11-20): all jobs passed.**
+
+- `app` — passed. Course build produced 13 chapters + index; Vite production build succeeded; `pytest learning_app/tests tools/tests -q` passed 69 tests; `npm run test:sandbox` and `npm run test:exercises` passed.
+- `postgres` — passed. Disposable `course_test` service database; `tools/run_sql.py` ran 59 SQL blocks with 0 failures; `project/tests` passed 13 tests.
+- GitGuardian security check — passed.
+- Local checks on the branch: `py_compile` on the changed Python files and `git diff --check` passed before pushing. No local Docker/WSL startup or live provider/model request is part of this task.
