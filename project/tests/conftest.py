@@ -9,9 +9,6 @@ os.environ.setdefault("DATABASE_URL", "postgresql://course:course@localhost:5432
 DSN = os.environ["DATABASE_URL"]
 SQL = pathlib.Path(__file__).parent.parent / "sql"
 
-assert DSN.split("?")[0].rstrip("/").endswith("_test"), "refusing to wipe a database whose name does not end in _test"
-
-
 def apply_sql(conn, *names):
     for name in names:
         conn.execute((SQL / name).read_text())
@@ -20,6 +17,8 @@ def apply_sql(conn, *names):
 @pytest.fixture(scope="session", autouse=True)
 def schema():
     with psycopg.connect(DSN, autocommit=True) as conn:
+        if not conn.execute("SELECT current_database()").fetchone()[0].endswith("_test"):
+            raise RuntimeError("refusing to wipe a database whose name does not end in _test")
         conn.execute("DROP SCHEMA public CASCADE")
         conn.execute("CREATE SCHEMA public")
         apply_sql(conn, *sorted(p.name for p in SQL.glob("0*.sql") if p.name != "002_seed.sql"))

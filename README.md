@@ -14,11 +14,13 @@ GitHub Pages hosts the static reading course. The full-stack Developer Studio ad
 - [Run directly on your machine for ChatGPT plan sign-in](learning_app/README.md#run-directly-on-your-machine)
 - [Connect GPT, Claude, and OpenCode providers](learning_app/README.md#connect-cloud-ai-providers)
 
-Read it online: https://sumukhak.github.io/postgres-event-driven-for-android-devs/ (after GitHub Pages is switched to "GitHub Actions").
+Read the [published course on GitHub Pages](https://sumukhak.github.io/postgres-event-driven-for-android-devs/). Pages is configured for GitHub Actions and HTTPS; it serves the static course, while Developer Studio runs separately.
 
 - Chapters are Markdown files in `src/`. `python tools/build.py` turns them into the site in `site/`.
 - Every SQL example is run against a real PostgreSQL 16 by `python tools/run_sql.py` before it is published.
 - Each chapter ends with a Sources list of official documentation.
+
+CI checks the course and app builds, Python app tests, JavaScript sandbox/exercise tests, and SQL examples plus demo API tests against a disposable PostgreSQL 16 service. `tools/run_sql.py` and `project/tests` erase the target database's public schema and refuse connected database names without an `_test` suffix. Use only a dedicated test database; never point these commands at data you need to keep.
 
 ## Course contents
 
