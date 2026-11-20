@@ -2,6 +2,8 @@
 
 Dates: 2026-11-20. Scope: correct the two repeatable guidance failures recorded in T26 and broaden hint/nudge coverage. **No model scores were produced in this change**; scoring quality limits are documented here so a future bounded local check starts from a fixed fixture.
 
+**Verification (PR #9, [run 44678969421](https://github.com/SumukhaK/postgres-event-driven-for-android-devs/actions/runs/44678969421), 2026-11-20): CI passed.** `pytest learning_app/tests tools/tests -q` passed 104 tests (69 existing + 35 new boundary checks) locally and in CI; course SQL blocks 59 ok / 0 failed; demo tests 13 passed; Vite build, sandbox and exercise suites, `node --check`, and `git diff --check` clean.
+
 ## T26 findings addressed
 
 1. **Misleading EXPLAIN explanation.** Qwen3 14B explained that index lookups are fast and full-table scans are slow, which is wrong for the tiny seed table: PostgreSQL weighs table size and selectivity, and an index is not automatically faster. Root cause: the verified explanation reference reached the tutor only for `ask` and `solution`, so the `explanation` action answered from generic priors.
