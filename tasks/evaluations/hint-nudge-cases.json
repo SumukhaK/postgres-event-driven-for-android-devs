@@ -1,0 +1,79 @@
+{
+  "description": "Repeatable tutor guidance cases across lessons. Each case fixes the lesson, action, and learner question so future bounded local checks reuse identical prompts. Quality boundaries state what a good answer does; leakage boundaries state what the answer must not add beyond the learner's own prompt. No model scores are recorded here; see tasks/t30-guidance-fixture.md for limits.",
+  "version": "1.0",
+  "created": "2026-11-20",
+  "cases": [
+    {
+      "id": "select-nudge",
+      "lesson_slug": "03-select",
+      "action": "nudge",
+      "learner_question": "How do I write this query?",
+      "quality_boundary": "Names the kind of step to consider, such as combining two filters and a sort, and stops there.",
+      "leakage_boundary": "Does not name is_active, a price comparison, the sort direction, or which columns to project."
+    },
+    {
+      "id": "select-hint",
+      "lesson_slug": "03-select",
+      "action": "hint",
+      "learner_question": "Can you be more specific about the filters?",
+      "quality_boundary": "May name specific identifiers and conditions, but leaves the assembled query to the learner.",
+      "leakage_boundary": "Does not present the full SELECT statement as one runnable block."
+    },
+    {
+      "id": "joins-nudge",
+      "lesson_slug": "05-joins",
+      "action": "nudge",
+      "learner_question": "Where do I even connect these tables?",
+      "quality_boundary": "Points toward finding a shared key between the two tables without naming the columns.",
+      "leakage_boundary": "Does not name customer_id, the join condition, or a grouping clause."
+    },
+    {
+      "id": "joins-hint",
+      "lesson_slug": "05-joins",
+      "action": "hint",
+      "learner_question": "Which columns link customers to orders?",
+      "quality_boundary": "May name the join keys and suggest grouping; the learner writes the query.",
+      "leakage_boundary": "Does not give the complete SELECT with the count alias and ordering."
+    },
+    {
+      "id": "update-nudge",
+      "lesson_slug": "04-changing-data",
+      "action": "nudge",
+      "learner_question": "How do I change just one row and see the result?",
+      "quality_boundary": "Points at scoping a change and returning the affected row without writing the statement.",
+      "leakage_boundary": "Does not name the SET expression or the RETURNING clause."
+    },
+    {
+      "id": "explain-nudge",
+      "lesson_slug": "07-indexes-explain",
+      "action": "nudge",
+      "learner_question": "What should I run to see the plan?",
+      "quality_boundary": "Points at asking PostgreSQL for the plan rather than running the query for rows.",
+      "leakage_boundary": "Does not state the final EXPLAIN statement or discuss whether an index is faster."
+    },
+    {
+      "id": "explain-explanation",
+      "lesson_slug": "07-indexes-explain",
+      "action": "explanation",
+      "learner_question": "Why would PostgreSQL not always use an index?",
+      "quality_boundary": "Explains that the tiny seed table will likely use a sequential scan and that PostgreSQL weighs table size and selectivity.",
+      "leakage_boundary": "Does not claim a full-table scan is inherently slow or that an index is automatically faster. This is the T26 14B failure mode."
+    },
+    {
+      "id": "guard-hint",
+      "lesson_slug": "08-transactions-concurrency",
+      "action": "hint",
+      "learner_question": "How do I stop the stock going negative?",
+      "quality_boundary": "May name the guard concept and a specific condition style, leaving the statement to the learner.",
+      "leakage_boundary": "Does not give the complete guarded UPDATE with RETURNING."
+    },
+    {
+      "id": "outbox-hint",
+      "lesson_slug": "10-event-driven-thinking",
+      "action": "hint",
+      "learner_question": "Why not just publish the event after saving?",
+      "quality_boundary": "Guides toward the failure window between commit and publish without choosing the answer for the learner.",
+      "leakage_boundary": "Does not restate the answer choice text or the worker-retry explanation verbatim."
+    }
+  ]
+}
