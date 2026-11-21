@@ -13,8 +13,8 @@ Use test accounts/keys with a known spend limit. Never add credentials or learne
 
 ## Tutor accuracy and safety
 
-- [ ] Broaden the repeatable hint/nudge evaluation beyond T26's one case each. 7B's nudge was too prescriptive; 14B's hints were appropriate in this small fixture. Neither establishes general hint accuracy.
-- [ ] Ground EXPLAIN explanations in the exercise's table-size/selectivity guidance without exposing solutions to hints. T26's 14B answers incorrectly implied full-table scans are inherently slow under both output limits; add regression cases before accepting a fix.
+- [ ] Broaden the repeatable hint/nudge evaluation beyond T26's one case each. 7B's nudge was too prescriptive; 14B's hints were appropriate in this small fixture. Neither establishes general hint accuracy. The fixed nine-case fixture now exists ([evaluations/hint-nudge-cases.json](tasks/evaluations/hint-nudge-cases.json)); actual model scoring still awaits a bounded live local check with verified resource headroom.
+- [x] Ground EXPLAIN explanations in the exercise's table-size/selectivity guidance without exposing solutions to hints. T26's 14B answers incorrectly implied full-table scans are inherently slow under both output limits; add regression cases before accepting a fix. Done in PR #9: the `explanation` action now carries the verified explanation reference, hints/nudges stay reference-free (regression-tested across all exercises), and the EXPLAIN grounding case is covered in `learning_app/tests/test_tutor_guidance.py`. Context assembly is verified; whether models follow the boundaries still needs the bounded live check above.
 - [x] Add advisory SQL identifier checks without executing generated SQL (PR #3). Unsupported/ambiguous statements remain unchecked; this does not prove query correctness.
 - [ ] Keep the schema/reference-context behavior only while repeated checks show it helps without leaking worked answers into hint/nudge responses. The current 5-prompt comparison is exploratory, not a controlled model-only benchmark.
 
