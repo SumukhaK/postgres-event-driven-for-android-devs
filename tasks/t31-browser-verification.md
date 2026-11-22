@@ -34,6 +34,7 @@ The failed stream still ends as an HTTP 200 SSE response whose final event is th
 ## Validation
 
 - `pytest tools/tests/test_local_provider_stub.py -q` passed 4 tests; full suite `pytest learning_app/tests tools/tests -q` passed locally before the PR.
+- **PR #10 CI ([run 45002269445](https://github.com/SumukhaK/postgres-event-driven-for-android-devs/actions/runs/45002269445), 2026-11-22) passed**: 108 Python tests (incl. the 4 new stub protocol tests), both builds, sandbox/exercise suites, 59 course SQL blocks and 13 demo tests.
 - Browser flow executed twice (once before an environment restart, once after), reproducing every scenario; the second run doubles as restart-persistence evidence.
 
 ## Limits
