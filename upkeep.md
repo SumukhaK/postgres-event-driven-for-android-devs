@@ -20,7 +20,7 @@ Use test accounts/keys with a known spend limit. Never add credentials or learne
 
 ## Responsiveness and local inference
 
-- [x] Stream partial answers and expose first-visible/total timing (PR #4). A combined live browser check remains in the task tracker.
+- [x] Stream partial answers and expose first-visible/total timing (PR #4). The combined live browser check is done (PR #10/T31): streamed text with first-visible timing, advisory SQL validation, a sanitized mid-stream failure, and privacy-safe correlated diagnostics were verified together in a real browser against a deterministic local stub.
 - [x] Compare a 160-token hint/nudge ceiling against 500, with explanation/solution/ask unchanged controls. T26 completed 24 requests per local model with no truncation; the lower ceiling did not bind or help. Retain 500. See [results and quality review](tasks/t26-tuning-results.md).
 - [x] Measure unloaded versus immediate resident reuse: mean savings of 13.803 s (7B) and 26.829 s (14B), including prompt-cache effects. Keep server-controlled residency; longer idle timeouts were not tested and may occupy scarce RAM unnecessarily.
 - [ ] For future comparisons, use the same prompts, model, hardware, and warm-up policy; report per-prompt results and median/p95 as well as the mean. Preserve the distinction between inference failures and answer-quality scores.
