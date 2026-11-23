@@ -50,10 +50,10 @@ Provider feasibility from current official documentation:
 
 ## Completion checkpoint
 
-- [ ] All tracker tasks and checkpoints are complete.
-- [ ] Local end-to-end path is verified from clean startup through sign-up, practice, progress save, AI help (with configured credentials), and sign-in persistence.
-- [ ] Existing tutorial and demo builds remain intact.
-- [ ] External deployment prerequisites are listed; no live deployment is claimed without verification.
+- [x] All tracker tasks and checkpoints are complete. (2026-11-22: `tasks/todo.md` has no unchecked items; Phase 7 closed via PRs #8, #9, #10.)
+- [x] Local end-to-end path is verified from clean startup through sign-up, practice, progress save, AI help (with configured credentials), and sign-in persistence. (T31/PR #10: real browser against the local app with a deterministic provider stub; evidence in `tasks/t31-browser-verification.md`. AI help used the scripted local provider, not live cloud credentials — live provider checks remain skipped by user request.)
+- [x] Existing tutorial and demo builds remain intact. (CI on every change: 13-chapter course build, 59 SQL blocks, 13 demo API tests, JS suites.)
+- [x] External deployment prerequisites are listed; no live deployment is claimed without verification. (README, `learning_app/README.md` hosting notes, and `upkeep.md` record the Pages/static-only boundary, HTTPS/persistent-storage requirements, and loopback-only ChatGPT sign-in; Pages deployment itself is verified.)
 
 ## Phase 6 · Tutor reliability, responsiveness, and diagnostics
 

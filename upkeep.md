@@ -27,8 +27,8 @@ Use test accounts/keys with a known spend limit. Never add credentials or learne
 
 ## Build and operations
 
-- [ ] Add automated CI for the app checks and the separate PostgreSQL demo tests. The demo tests require `psycopg` and a disposable test database whose name ends in `_test`; keep their destructive fixture isolated from any real database.
-- [ ] Before claiming the static course is deployed, confirm the GitHub Pages source and live URL. The repository has a Pages workflow, but the root README still describes that URL as conditional.
+- [x] Add automated CI for the app checks and the separate PostgreSQL demo tests. The demo tests require `psycopg` and a disposable test database whose name ends in `_test`; keep their destructive fixture isolated from any real database. Done in PR #8/T32: `.github/workflows/ci.yml` runs the app job (builds, Python tests, JS suites) and a PostgreSQL 16 service job (`course_test`) for `tools/run_sql.py` and the demo tests; both destructive paths refuse database names without the `_test` suffix.
+- [x] Before claiming the static course is deployed, confirm the GitHub Pages source and live URL. The repository has a Pages workflow, but the root README still describes that URL as conditional. Done in PR #8/T32: Pages API reported `build_type: workflow` with HTTPS enforced, the live course URL returned the expected content, the README wording was corrected, and every push to `main` deploys successfully.
 - [ ] If public full-stack hosting becomes a goal, plan it separately: use HTTPS, persistent storage, backups, secret management, and an abuse/rate-limit strategy. GitHub Pages only serves the static course; it is not the account/AI backend.
 
 ## Explicitly out of scope for now
